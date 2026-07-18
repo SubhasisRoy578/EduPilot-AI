@@ -53,11 +53,9 @@ export default function Roadmap() {
             <p className="text-muted-foreground">Create personalized learning paths to master any skill</p>
           </div>
           <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-blue-600">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create Roadmap
-              </Button>
+            <DialogTrigger className="bg-primary hover:bg-blue-600 text-foreground px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+              <Sparkles className="w-4 h-4" />
+              Create Roadmap
             </DialogTrigger>
             <DialogContent className="bg-card border-border/50">
               <DialogHeader>

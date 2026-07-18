@@ -1,0 +1,19 @@
+{
+  "name": "edupilot-ai",
+  "version": "1.0.0",
+  "description": "AI-powered personalized learning platform",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && pnpm dev",
+    "build": "cd frontend && pnpm build",
+    "start": "cd frontend && pnpm start",
+    "lint": "cd frontend && pnpm lint"
+  },
+  "keywords": ["education", "ai", "learning"],
+  "author": "EduPilot Team",
+  "license": "MIT",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
