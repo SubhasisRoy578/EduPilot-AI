@@ -1,33 +1,69 @@
-# EduPilot-AI
+# EduPilot AI
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+A comprehensive monorepo for the EduPilot AI platform - an AI-powered personalized learning system.
 
-## Built with v0
+## Project Structure
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
-
-[Continue working on v0 →](https://v0.app/chat/projects/prj_iirHqhFBhx0sAaRcpwSdxMFURS7P)
+```
+EDU-PILOT-AI/
+├── frontend/              # Next.js frontend application
+│   ├── app/              # Next.js App Router
+│   ├── components/       # React components
+│   ├── lib/              # Utilities and helpers
+│   ├── public/           # Static assets
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── next.config.mjs
+│   └── README-FRONTEND.md
+├── backend/              # Backend service (coming soon)
+└── README.md            # This file
+```
 
 ## Getting Started
 
-First, run the development server:
+### Frontend
+
+Navigate to the frontend directory and install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cd frontend
+pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will be available at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-## Learn More
+- **Landing Page**: Marketing site with hero, features, testimonials, and CTAs
+- **Authentication**: Sign-in, sign-up, and password recovery pages
+- **Dashboard**: Main user interface with sidebar navigation
+- **AI Roadmap**: Personalized learning path generation
+- **AI Assessment**: Skill assessment and evaluation
+- **Analytics**: Learning analytics and progress tracking
 
-To learn more, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Animations**: Framer Motion
+- **Charts**: Recharts
+- **Package Manager**: pnpm
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 8+
+
+### Setup
+
+1. Clone the repository
+2. Navigate to `frontend/` directory
+3. Install dependencies: `pnpm install`
+4. Start dev server: `pnpm dev`
+
+## Deployment
+
+The frontend can be deployed to Vercel or any other hosting platform. See `frontend/README-FRONTEND.md` for more details.
