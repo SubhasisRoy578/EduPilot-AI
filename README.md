@@ -67,3 +67,4 @@ The app will be available at `http://localhost:3000`.
 ## Deployment
 
 The frontend can be deployed to Vercel or any other hosting platform. See `frontend/README-FRONTEND.md` for more details.
+https://edupilot-ai-tau.vercel.app/
