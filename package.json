@@ -11,9 +11,5 @@
   },
   "keywords": ["education", "ai", "learning"],
   "author": "EduPilot Team",
-  "license": "MIT",
-  "workspaces": [
-    "frontend",
-    "backend"
-  ]
+  "license": "MIT"
 }

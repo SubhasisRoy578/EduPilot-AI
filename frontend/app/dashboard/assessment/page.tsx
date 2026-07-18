@@ -53,7 +53,7 @@ export default function Assessment() {
             <p className="text-muted-foreground">Evaluate your skills and identify gaps</p>
           </div>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogTrigger className="bg-primary hover:bg-blue-600 text-foreground px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors">
+            <DialogTrigger render={<Button className="bg-primary hover:bg-blue-600" />}>
               <Sparkles className="w-4 h-4" />
               Start Assessment
             </DialogTrigger>
