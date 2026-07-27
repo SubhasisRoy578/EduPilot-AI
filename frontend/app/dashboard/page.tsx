@@ -1,5 +1,7 @@
 'use client'
-
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { Textarea } from '@/components/ui/textarea'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -32,6 +34,60 @@ const staggerContainer = {
 }
 
 export default function Dashboard() {
+  const [user, setUser] = useState({
+  name: "",
+  email: "",
+  role: "",
+});
+
+const [goal, setGoal] = useState("");
+
+const [roadmap, setRoadmap] = useState("");
+
+const [loading, setLoading] = useState(false);
+
+
+useEffect(() => {
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.get(
+        "http://127.0.0.1:8000/me",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  fetchUser();
+}, []);
+const generateRoadmap = async () => {
+  try {
+    setLoading(true);
+
+    const response = await axios.post(
+      "http://127.0.0.1:8000/grok/test",
+      {
+        goal: goal,
+      }
+    );
+
+    setRoadmap(response.data.roadmap);
+  } catch (error) {
+    console.error("Error generating roadmap:", error);
+    alert("Failed to generate roadmap");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
@@ -41,7 +97,7 @@ export default function Dashboard() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full blur-3xl"></div>
           </div>
           <div className="relative z-10">
-            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome to EduPilot, Alex</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2">Welcome to EduPilot, {user.name}</h2>
             <p className="text-muted-foreground mb-6">
               You&apos;re on track to master your learning goals. Keep up the great work!
             </p>
@@ -144,6 +200,33 @@ export default function Dashboard() {
             </div>
 
             <div className="space-y-6">
+              <div className="space-y-4">
+  <Textarea
+    placeholder="Example: I want to become a Python Developer in 3 months..."
+    value={goal}
+    onChange={(e) => setGoal(e.target.value)}
+  />
+
+  <Button
+    onClick={generateRoadmap}
+    disabled={loading || !goal}
+    className="w-full"
+  >
+    {loading ? "Generating AI Roadmap..." : "Generate AI Roadmap"}
+  </Button>
+
+  {roadmap && (
+    <Card className="p-4">
+      <h4 className="text-lg font-semibold mb-3">
+        AI Generated Roadmap
+      </h4>
+
+      <pre className="whitespace-pre-wrap text-sm">
+        {roadmap}
+      </pre>
+    </Card>
+  )}
+</div>
               {/* Empty state message */}
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mb-4">

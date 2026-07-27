@@ -53,12 +53,9 @@ export default function Roadmap() {
             <p className="text-muted-foreground">Create personalized learning paths to master any skill</p>
           </div>
           <Dialog open={showForm} onOpenChange={setShowForm}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-blue-600">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create Roadmap
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger>
+  Create Roadmap
+</DialogTrigger>
             <DialogContent className="bg-card border-border/50">
               <DialogHeader>
                 <DialogTitle>Create Your Learning Roadmap</DialogTitle>
@@ -80,19 +77,25 @@ export default function Roadmap() {
 
                 <div className="space-y-2">
                   <Label htmlFor="currentSkill">Current Level</Label>
-                  <Select
-                    value={formData.currentSkill}
-                    onChange={(e) => setFormData({ ...formData, currentSkill: e.target.value })}
-                  >
-                    <option value="beginner">Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                  </Select>
+                  <select
+  value={formData.currentSkill}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      currentSkill: e.target.value,
+    })
+  }
+  className="w-full rounded-md border border-border bg-background p-2"
+>
+  <option value="beginner">Beginner</option>
+  <option value="intermediate">Intermediate</option>
+  <option value="advanced">Advanced</option>
+</select>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="hoursPerWeek">Hours Available Per Week</Label>
-                  <Select
+                  <select
                     value={formData.hoursPerWeek}
                     onChange={(e) => setFormData({ ...formData, hoursPerWeek: e.target.value })}
                   >
@@ -100,7 +103,7 @@ export default function Roadmap() {
                     <option value="5">5 hours</option>
                     <option value="10">10 hours</option>
                     <option value="15">15+ hours</option>
-                  </Select>
+                  </select>
                 </div>
 
                 <div className="space-y-2">

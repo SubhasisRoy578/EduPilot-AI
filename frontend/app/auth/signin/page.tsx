@@ -8,11 +8,43 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useState } from 'react'
 import { ArrowRight, Mail, Lock } from 'lucide-react'
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const router = useRouter()
 
+ 
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append("username", email);
+    formData.append("password", password);
+
+    const response = await axios.post(
+      "http://127.0.0.1:8000/login",
+      formData,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    localStorage.setItem("token", response.data.access_token);
+
+    alert("Login Successful!");
+
+    router.push("/dashboard");
+   } catch (error) {
+    alert("Invalid email or password");
+    console.error(error);
+  }
+};
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,7 +55,7 @@ export default function SignIn() {
         <h1 className="text-2xl font-bold text-foreground mb-2">Welcome Back</h1>
         <p className="text-muted-foreground mb-6">Sign in to your EduPilot account</p>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleLogin}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
@@ -64,7 +96,10 @@ export default function SignIn() {
             </Link>
           </div>
 
-          <Button className="w-full bg-primary hover:bg-blue-600 mt-6">
+          <Button
+type="submit"
+  className="w-full bg-primary hover:bg-blue-600 mt-6"
+>
             Sign In <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </form>

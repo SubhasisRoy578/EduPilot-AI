@@ -1,0 +1,30 @@
+from openai import OpenAI
+
+from app.core.config import settings
+
+client = OpenAI(
+    api_key=settings.GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
+
+
+def generate_roadmap(goal: str):
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are an expert education mentor. "
+                    "Generate a structured learning roadmap."
+                ),
+            },
+            {
+                "role": "user",
+                "content": goal,
+            },
+        ],
+        temperature=0.7,
+    )
+
+    return response.choices[0].message.content

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String
 
 from app.database.database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -15,3 +16,5 @@ class User(Base):
     hashed_password = Column(String)
 
     role = Column(String, default="student")
+
+    roadmaps = relationship("Roadmap", back_populates="user")
