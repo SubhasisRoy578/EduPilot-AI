@@ -26,6 +26,7 @@ import {
   Calendar,
   Filter,
 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -62,6 +63,37 @@ const emptyBarData = [
 ]
 
 export default function Analytics() {
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/analytics/summary', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+          },
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setAnalyticsData(data)
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchAnalytics()
+  }, [])
+
+  if (isLoading) {
+    return <div>Loading analytics...</div>
+  }
+
+  const data = analyticsData || {}
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -93,28 +125,28 @@ export default function Analytics() {
           {
             icon: TrendingUp,
             label: 'Total Learning Hours',
-            value: '0 hrs',
+            value: data.stats?.total_learning_hours || '0 hrs',
             subtext: 'This month',
             trend: '+0%',
           },
           {
             icon: Target,
             label: 'Goals Completed',
-            value: '0',
+            value: data.stats?.goals_completed || '0',
             subtext: 'All time',
             trend: '-',
           },
           {
             icon: Calendar,
             label: 'Learning Days',
-            value: '0',
+            value: data.stats?.learning_days || '0',
             subtext: 'This month',
             trend: '+0%',
           },
           {
             icon: Clock,
             label: 'Avg. Daily Time',
-            value: '0 min',
+            value: data.stats?.avg_daily_time || '0 min',
             subtext: 'Per session',
             trend: '-',
           },
@@ -155,17 +187,34 @@ export default function Analytics() {
         >
           <Card className="bg-card border-border/50 p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Learning Progress (Last 6 Months)</h3>
-            <div className="h-80 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-8 h-8 text-blue-400" />
-                </div>
-                <p className="text-foreground font-medium mb-1">No data available</p>
-                <p className="text-sm text-muted-foreground">
-                  Your learning progress will appear here once you start learning
-                </p>
+            {data.learning_progress && data.learning_progress.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={data.learning_progress}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="month" stroke="#888" />
+                    <YAxis stroke="#888" />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1e293b', border: 'none' }}
+                      itemStyle={{ color: '#60a5fa' }}
+                    />
+                    <Line type="monotone" dataKey="hours" stroke="#3b82f6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-            </div>
+            ) : (
+              <div className="h-80 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-8 h-8 text-blue-400" />
+                  </div>
+                  <p className="text-foreground font-medium mb-1">No data available</p>
+                  <p className="text-sm text-muted-foreground">
+                    Your learning progress will appear here once you start learning
+                  </p>
+                </div>
+              </div>
+            )}
           </Card>
         </motion.div>
 
@@ -178,17 +227,34 @@ export default function Analytics() {
         >
           <Card className="bg-card border-border/50 p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">Weekly Activity</h3>
-            <div className="h-80 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="w-8 h-8 text-cyan-400" />
-                </div>
-                <p className="text-foreground font-medium mb-1">No activity this week</p>
-                <p className="text-sm text-muted-foreground">
-                  Get started with your first learning session to see weekly stats
-                </p>
+            {data.weekly_activity && data.weekly_activity.length > 0 ? (
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={data.weekly_activity}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="day" stroke="#888" />
+                    <YAxis stroke="#888" />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1e293b', border: 'none' }}
+                      itemStyle={{ color: '#22d3ee' }}
+                    />
+                    <Bar dataKey="duration" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-            </div>
+            ) : (
+              <div className="h-80 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
+                    <Calendar className="w-8 h-8 text-cyan-400" />
+                  </div>
+                  <p className="text-foreground font-medium mb-1">No activity this week</p>
+                  <p className="text-sm text-muted-foreground">
+                    Get started with your first learning session to see weekly stats
+                  </p>
+                </div>
+              </div>
+            )}
           </Card>
         </motion.div>
       </div>
@@ -202,20 +268,34 @@ export default function Analytics() {
       >
         <Card className="bg-card border-border/50 p-6">
           <h3 className="text-lg font-semibold text-foreground mb-6">Skill Progress</h3>
-          <div className="space-y-6">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
-                <Target className="w-8 h-8 text-purple-400" />
-              </div>
-              <p className="text-foreground font-medium mb-2">No skills tracked yet</p>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create a roadmap and take assessments to start tracking your skill progress
-              </p>
-              <Button size="sm" className="bg-primary hover:bg-blue-600">
-                Create Roadmap
-              </Button>
+          {data.skill_progress && data.skill_progress.length > 0 ? (
+            <div className="space-y-6">
+              {data.skill_progress.map((skill: any, i: number) => (
+                <div key={i}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-foreground">{skill.subject}</span>
+                    <span className="text-sm font-medium text-purple-400">{skill.score}%</span>
+                  </div>
+                  <Progress value={skill.score} className="h-2" />
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
+                  <Target className="w-8 h-8 text-purple-400" />
+                </div>
+                <p className="text-foreground font-medium mb-2">No skills tracked yet</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Create a roadmap and take assessments to start tracking your skill progress
+                </p>
+                <Button size="sm" className="bg-primary hover:bg-blue-600">
+                  Create Roadmap
+                </Button>
+              </div>
+            </div>
+          )}
         </Card>
       </motion.div>
 
@@ -228,18 +308,35 @@ export default function Analytics() {
       >
         <Card className="bg-card border-border/50 p-6">
           <h3 className="text-lg font-semibold text-foreground mb-6">Assessment History</h3>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-4">
-              <Clock className="w-8 h-8 text-orange-400" />
+          {data.assessment_history && data.assessment_history.length > 0 ? (
+            <div className="space-y-4">
+              {data.assessment_history.map((assessment: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">{assessment.topic}</h4>
+                    <p className="text-xs text-muted-foreground">{assessment.date}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-green-400 mb-1">{assessment.percentage}%</div>
+                    <p className="text-xs text-muted-foreground">{assessment.score} / {assessment.total} correct</p>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-foreground font-medium mb-2">No assessments completed</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              Complete your first assessment to see your assessment history and scores
-            </p>
-            <Button size="sm" className="bg-primary hover:bg-blue-600">
-              Take Assessment
-            </Button>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-4">
+                <Clock className="w-8 h-8 text-orange-400" />
+              </div>
+              <p className="text-foreground font-medium mb-2">No assessments completed</p>
+              <p className="text-sm text-muted-foreground mb-4">
+                Complete your first assessment to see your assessment history and scores
+              </p>
+              <Button size="sm" className="bg-primary hover:bg-blue-600">
+                Take Assessment
+              </Button>
+            </div>
+          )}
         </Card>
       </motion.div>
 
