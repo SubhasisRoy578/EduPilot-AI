@@ -11,6 +11,11 @@ class User(Base):
 
     name = Column(String, nullable=False)
 
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    bio = Column(String, nullable=True)
+    settings = Column(String, nullable=True) # JSON stored as string for simplicity
+
     email = Column(String, unique=True, index=True)
 
     hashed_password = Column(String)

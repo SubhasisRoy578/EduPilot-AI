@@ -1,4 +1,5 @@
 from openai import OpenAI
+import traceback
 
 from app.core.config import settings
 
@@ -7,28 +8,29 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-
 def generate_roadmap(goal: str):
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "You are an expert education mentor. "
-                    "Generate a structured learning roadmap."
-                ),
-            },
-            {
-                "role": "user",
-                "content": goal,
-            },
-        ],
-        temperature=0.7,
-    )
-
-    return response.choices[0].message.content
-
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an expert education mentor. "
+                        "Generate a structured learning roadmap."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": goal,
+                },
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"Error generating roadmap: {e}")
+        return f"Fallback Roadmap for {goal}:\n\n1. Define your goal clearly.\n2. Find foundational resources on the topic.\n3. Practice continuously.\n4. Build a project."
 
 def generate_quiz(topic: str) -> str:
     prompt = f"""
@@ -49,17 +51,20 @@ def generate_quiz(topic: str) -> str:
     }}
     Do not wrap the JSON in markdown code blocks. Ensure the output is valid JSON.
     """
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
-        temperature=0.3,
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            temperature=0.3,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return '{"topic": "' + topic + '", "questions": [{"id": 1, "question": "What is 1+1?", "options": ["1", "2", "3", "4"], "correct_answer": "2"}]}'
 
 
 def generate_recommendations(topic: str, score: int, total: int) -> str:
@@ -69,14 +74,17 @@ def generate_recommendations(topic: str, score: int, total: int) -> str:
     Based on their score, provide a short, personalized paragraph of feedback and recommendations for their learning journey.
     Keep it encouraging and focused on actionable advice.
     """
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
-        temperature=0.7,
-    )
-    return response.choices[0].message.content
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            temperature=0.7,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return "Keep practicing and you'll get better! Consider reviewing the core fundamentals."

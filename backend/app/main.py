@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 from app.models.user import User
-from app.database.database import SessionLocal
+from app.database.database import SessionLocal, get_db
 from app.database.database import Base, engine
 from app.utils.security import hash_password
 from app.schemas.token import LoginRequest
@@ -9,6 +9,7 @@ from app.auth.jwt_handler import create_access_token
 from app.utils.security import verify_password
 from app.auth.auth_handler import get_current_user
 from fastapi import Depends
+from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,8 +102,32 @@ def get_me(current_user: User = Depends(get_current_user)):
         "id": current_user.id,
         "name": current_user.name,
         "email": current_user.email,
-        "role": current_user.role
+        "role": current_user.role,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "bio": current_user.bio,
+        "settings": current_user.settings
     }
+
+@app.put("/me")
+def update_me(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if user_update.first_name is not None:
+        current_user.first_name = user_update.first_name
+    if user_update.last_name is not None:
+        current_user.last_name = user_update.last_name
+    if user_update.bio is not None:
+        current_user.bio = user_update.bio
+    if user_update.settings is not None:
+        current_user.settings = user_update.settings
+
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
 
 
 
