@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
+
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -151,11 +153,11 @@ function AssessmentContent() {
             </p>
           </div>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-blue-600">
+            <DialogTrigger className="bg-primary hover:bg-blue-600 px-4 py-2 rounded-md text-white">
+             
                 <Sparkles className="w-4 h-4 mr-2" />
                 Start Assessment
-              </Button>
+              
             </DialogTrigger>
             <DialogContent className="bg-card border-border/50">
               <DialogHeader>
