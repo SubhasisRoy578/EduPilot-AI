@@ -14,6 +14,8 @@ from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.roadmap import Roadmap
 from app.routes.roadmap import router as roadmap_router
+from app.routes.assessment import router as assessment_router
+from app.routes.analytics import router as analytics_router
 from app.services.grok_service import generate_roadmap
 from pydantic import BaseModel
 
@@ -35,6 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(roadmap_router)
+app.include_router(assessment_router)
+app.include_router(analytics_router)
+
 @app.get("/")
 def home():
     return {"message": "EduPilot AI Backend Running"}

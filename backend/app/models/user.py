@@ -18,3 +18,4 @@ class User(Base):
     role = Column(String, default="student")
 
     roadmaps = relationship("Roadmap", back_populates="user")
+    assessments = relationship("Assessment", back_populates="user")

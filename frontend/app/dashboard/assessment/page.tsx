@@ -39,6 +39,79 @@ const staggerContainer = {
 export default function Assessment() {
   const [showDialog, setShowDialog] = useState(false)
   const [selectedSkill, setSelectedSkill] = useState('')
+  const [quizData, setQuizData] = useState<any>(null)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [answers, setAnswers] = useState<Record<number, string>>({})
+  const [quizStatus, setQuizStatus] = useState<'idle' | 'taking' | 'result'>('idle')
+  const [result, setResult] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const startAssessment = async (skill: string) => {
+    setSelectedSkill(skill)
+    setShowDialog(false)
+    setIsLoading(true)
+    try {
+      const response = await fetch('http://localhost:8000/assessment/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        body: JSON.stringify({ topic: skill }),
+      })
+      if (!response.ok) throw new Error('Failed to generate assessment')
+      const data = await response.json()
+      setQuizData(data)
+      setQuizStatus('taking')
+      setCurrentQuestionIndex(0)
+      setAnswers({})
+    } catch (error) {
+      console.error(error)
+      // Fallback or show error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleOptionSelect = (questionId: number, option: string) => {
+    setAnswers({ ...answers, [questionId]: option })
+  }
+
+  const submitAssessment = async () => {
+    if (!quizData) return
+    setIsLoading(true)
+
+    // Calculate score locally (since we trust the frontend here for simplicity)
+    let score = 0
+    quizData.questions.forEach((q: any) => {
+      if (answers[q.id] === q.correct_answer) {
+        score++
+      }
+    })
+
+    try {
+      const response = await fetch('http://localhost:8000/assessment/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        body: JSON.stringify({
+          topic: quizData.topic,
+          score,
+          total_questions: quizData.questions.length,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to submit assessment')
+      const data = await response.json()
+      setResult(data)
+      setQuizStatus('result')
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -79,10 +152,8 @@ export default function Assessment() {
                     key={skill}
                     variant="outline"
                     className="w-full justify-start border-border/50 h-auto py-3 hover:bg-blue-500/10"
-                    onClick={() => {
-                      setSelectedSkill(skill)
-                      setShowDialog(false)
-                    }}
+                    onClick={() => startAssessment(skill)}
+                    disabled={isLoading}
                   >
                     {skill}
                   </Button>
@@ -93,7 +164,130 @@ export default function Assessment() {
         </div>
       </motion.div>
 
+      {isLoading && quizStatus === 'idle' && (
+        <Card className="bg-card border-border/50 p-12 text-center">
+          <h3 className="text-xl font-semibold mb-2">Generating Assessment...</h3>
+          <p className="text-muted-foreground">Please wait while our AI creates a personalized quiz for you.</p>
+        </Card>
+      )}
+
+      {/* Quiz Taking State */}
+      {quizStatus === 'taking' && quizData && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="bg-card border-border/50 p-8">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Question {currentQuestionIndex + 1} of {quizData.questions.length}
+                </span>
+                <span className="text-sm font-medium text-blue-400">
+                  {selectedSkill}
+                </span>
+              </div>
+              <Progress value={((currentQuestionIndex + 1) / quizData.questions.length) * 100} className="mb-6" />
+              <h3 className="text-xl font-semibold text-foreground">
+                {quizData.questions[currentQuestionIndex].question}
+              </h3>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              {quizData.questions[currentQuestionIndex].options.map((option: string, i: number) => (
+                <Button
+                  key={i}
+                  variant={answers[quizData.questions[currentQuestionIndex].id] === option ? "default" : "outline"}
+                  className={`w-full justify-start h-auto py-4 px-6 text-left whitespace-normal ${
+                    answers[quizData.questions[currentQuestionIndex].id] === option
+                    ? "bg-blue-600 hover:bg-blue-700 border-transparent text-white"
+                    : "border-border/50 hover:bg-blue-500/10"
+                  }`}
+                  onClick={() => handleOptionSelect(quizData.questions[currentQuestionIndex].id, option)}
+                >
+                  <span className="mr-4 inline-block w-6 h-6 rounded-full border-2 border-current flex items-center justify-center flex-shrink-0">
+                    {String.fromCharCode(65 + i)}
+                  </span>
+                  {option}
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex justify-between">
+              <Button
+                variant="outline"
+                disabled={currentQuestionIndex === 0}
+                onClick={() => setCurrentQuestionIndex(prev => prev - 1)}
+              >
+                Previous
+              </Button>
+              {currentQuestionIndex < quizData.questions.length - 1 ? (
+                <Button
+                  onClick={() => setCurrentQuestionIndex(prev => prev + 1)}
+                  disabled={!answers[quizData.questions[currentQuestionIndex].id]}
+                >
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={submitAssessment}
+                  disabled={!answers[quizData.questions[currentQuestionIndex].id] || isLoading}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isLoading ? 'Submitting...' : 'Submit Assessment'}
+                </Button>
+              )}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Results State */}
+      {quizStatus === 'result' && result && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card className="bg-card border-border/50 p-12 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center">
+                <Award className="w-10 h-10 text-green-400" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">Assessment Complete!</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              You scored <span className="font-bold text-white">{result.score}</span> out of {result.total_questions} on {result.topic}
+            </p>
+
+            <div className="bg-blue-500/10 rounded-lg p-6 text-left mb-8 max-w-2xl mx-auto border border-blue-500/20">
+              <h3 className="text-xl font-semibold mb-3 flex items-center">
+                <Sparkles className="w-5 h-5 text-blue-400 mr-2" />
+                AI Recommendations
+              </h3>
+              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {result.recommendations || "Great job! Keep practicing to improve your skills further."}
+              </p>
+            </div>
+
+            <Button
+              onClick={() => {
+                setQuizStatus('idle')
+                setResult(null)
+                setQuizData(null)
+              }}
+              className="bg-primary hover:bg-blue-600"
+            >
+              Take Another Assessment
+            </Button>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Empty State */}
+      {!isLoading && quizStatus === 'idle' && (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -115,8 +309,10 @@ export default function Assessment() {
           </Button>
         </Card>
       </motion.div>
+      )}
 
       {/* Assessment Preview */}
+      {!isLoading && quizStatus === 'idle' && (
       <motion.div
         variants={staggerContainer}
         initial="initial"
@@ -199,8 +395,10 @@ export default function Assessment() {
           ))}
         </div>
       </motion.div>
+      )}
 
       {/* Assessment Benefits */}
+      {!isLoading && quizStatus === 'idle' && (
       <motion.div
         variants={fadeInUp}
         initial="initial"
@@ -230,6 +428,7 @@ export default function Assessment() {
           </ul>
         </Card>
       </motion.div>
+      )}
     </div>
   )
 }
