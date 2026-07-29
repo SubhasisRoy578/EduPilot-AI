@@ -100,6 +100,7 @@ export default function Dashboard() {
         {
           title: title,
           description: goal,
+          hours_per_day: 1, // Defaulting to 1 for quick roadmaps
         },
         {
           headers: { Authorization: `Bearer ${token}` },

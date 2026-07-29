@@ -22,6 +22,7 @@ def create_roadmap(
     new_roadmap = Roadmap(
         title=roadmap.title,
         description=roadmap.description,
+        hours_per_day=roadmap.hours_per_day,
         user_id=current_user.id
     )
 

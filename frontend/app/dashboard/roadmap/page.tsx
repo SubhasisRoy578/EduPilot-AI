@@ -78,6 +78,7 @@ export default function Roadmap() {
         {
           title: title,
           description: formData.goal,
+          hours_per_day: Math.ceil(parseInt(formData.hoursPerWeek) / 7),
         },
         { headers: { Authorization: `Bearer ${token}` } },
       );

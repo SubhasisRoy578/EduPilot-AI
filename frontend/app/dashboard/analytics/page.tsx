@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   LineChart,
   Line,
@@ -17,7 +17,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts'
+} from "recharts";
 import {
   BarChart3,
   TrendingUp,
@@ -25,75 +25,90 @@ import {
   Target,
   Calendar,
   Filter,
-} from 'lucide-react'
-import { useState, useEffect } from 'react'
+} from "lucide-react";
+import { useState, useEffect } from "react";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   whileInView: { opacity: 1, y: 0 },
   transition: { duration: 0.5 },
-  viewport: { once: true, margin: '0px 0px -50px 0px' },
-}
+  viewport: { once: true, margin: "0px 0px -50px 0px" },
+};
 
 const staggerContainer = {
   initial: { opacity: 0 },
   whileInView: { opacity: 1 },
   transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   viewport: { once: true },
-}
+};
 
 // Mock data for charts (will be replaced with real API data)
 const emptyLineData = [
-  { month: 'Jan', hours: 0 },
-  { month: 'Feb', hours: 0 },
-  { month: 'Mar', hours: 0 },
-  { month: 'Apr', hours: 0 },
-  { month: 'May', hours: 0 },
-  { month: 'Jun', hours: 0 },
-]
+  { month: "Jan", hours: 0 },
+  { month: "Feb", hours: 0 },
+  { month: "Mar", hours: 0 },
+  { month: "Apr", hours: 0 },
+  { month: "May", hours: 0 },
+  { month: "Jun", hours: 0 },
+];
 
 const emptyBarData = [
-  { day: 'Mon', duration: 0 },
-  { day: 'Tue', duration: 0 },
-  { day: 'Wed', duration: 0 },
-  { day: 'Thu', duration: 0 },
-  { day: 'Fri', duration: 0 },
-  { day: 'Sat', duration: 0 },
-  { day: 'Sun', duration: 0 },
-]
+  { day: "Mon", duration: 0 },
+  { day: "Tue", duration: 0 },
+  { day: "Wed", duration: 0 },
+  { day: "Thu", duration: 0 },
+  { day: "Fri", duration: 0 },
+  { day: "Sat", duration: 0 },
+  { day: "Sun", duration: 0 },
+];
 
 export default function Analytics() {
-  const [analyticsData, setAnalyticsData] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [data, setData] = useState<any>({
+    stats: {
+      total_learning_hours: "0 hrs",
+      goals_completed: "0",
+      learning_days: "0",
+      avg_daily_time: "0 min",
+    },
+    learning_progress: [],
+    weekly_activity: [],
+    skill_progress: [],
+    assessment_history: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const response = await fetch('http://localhost:8000/analytics/summary', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        const response = await fetch(
+          "http://localhost:8000/analytics/summary",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
           },
-        })
+        );
         if (response.ok) {
-          const data = await response.json()
-          setAnalyticsData(data)
+          const data = await response.json();
+          setData(data);
         }
       } catch (error) {
-        console.error('Failed to fetch analytics', error)
+        console.error("Failed to fetch analytics", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchAnalytics()
-  }, [])
+    fetchAnalytics();
+  }, []);
 
   if (isLoading) {
-    return <div>Loading analytics...</div>
+    return <div>Loading analytics...</div>;
   }
 
-  const data = analyticsData || {}
 
+
+  if (isLoading) return <div>Loading...</div>;
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -104,7 +119,9 @@ export default function Analytics() {
               <BarChart3 className="w-8 h-8 text-blue-400" />
               Progress Analytics
             </h1>
-            <p className="text-muted-foreground">Track your learning journey and growth</p>
+            <p className="text-muted-foreground">
+              Track your learning journey and growth
+            </p>
           </div>
           <Button variant="outline" className="border-border/50">
             <Filter className="w-4 h-4 mr-2" />
@@ -124,34 +141,34 @@ export default function Analytics() {
         {[
           {
             icon: TrendingUp,
-            label: 'Total Learning Hours',
-            value: data.stats?.total_learning_hours || '0 hrs',
-            subtext: 'This month',
-            trend: '+0%',
+            label: "Total Learning Hours",
+            value: data.stats?.total_learning_hours || "0 hrs",
+            subtext: "This month",
+            trend: "+0%",
           },
           {
             icon: Target,
-            label: 'Goals Completed',
-            value: data.stats?.goals_completed || '0',
-            subtext: 'All time',
-            trend: '-',
+            label: "Goals Completed",
+            value: data.stats?.goals_completed || "0",
+            subtext: "All time",
+            trend: "-",
           },
           {
             icon: Calendar,
-            label: 'Learning Days',
-            value: data.stats?.learning_days || '0',
-            subtext: 'This month',
-            trend: '+0%',
+            label: "Learning Days",
+            value: data.stats?.learning_days || "0",
+            subtext: "This month",
+            trend: "+0%",
           },
           {
             icon: Clock,
-            label: 'Avg. Daily Time',
-            value: data.stats?.avg_daily_time || '0 min',
-            subtext: 'Per session',
-            trend: '-',
+            label: "Avg. Daily Time",
+            value: data.stats?.avg_daily_time || "0 min",
+            subtext: "Per session",
+            trend: "-",
           },
         ].map((stat, i) => {
-          const Icon = stat.icon
+          const Icon = stat.icon;
           return (
             <motion.div
               key={i}
@@ -165,14 +182,20 @@ export default function Analytics() {
                   <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                     <Icon className="w-5 h-5 text-blue-400" />
                   </div>
-                  <span className="text-xs font-semibold text-green-400">{stat.trend}</span>
+                  <span className="text-xs font-semibold text-green-400">
+                    {stat.trend}
+                  </span>
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                <h3 className="text-2xl font-bold text-foreground mb-1">{stat.value}</h3>
+                <p className="text-sm text-muted-foreground mb-1">
+                  {stat.label}
+                </p>
+                <h3 className="text-2xl font-bold text-foreground mb-1">
+                  {stat.value}
+                </h3>
                 <p className="text-xs text-muted-foreground">{stat.subtext}</p>
               </Card>
             </motion.div>
-          )
+          );
         })}
       </motion.div>
 
@@ -186,7 +209,9 @@ export default function Analytics() {
           viewport={{ once: true }}
         >
           <Card className="bg-card border-border/50 p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Learning Progress (Last 6 Months)</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Learning Progress (Last 6 Months)
+            </h3>
             {data.learning_progress && data.learning_progress.length > 0 ? (
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -195,10 +220,18 @@ export default function Analytics() {
                     <XAxis dataKey="month" stroke="#888" />
                     <YAxis stroke="#888" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#1e293b', border: 'none' }}
-                      itemStyle={{ color: '#60a5fa' }}
+                      contentStyle={{
+                        backgroundColor: "#1e293b",
+                        border: "none",
+                      }}
+                      itemStyle={{ color: "#60a5fa" }}
                     />
-                    <Line type="monotone" dataKey="hours" stroke="#3b82f6" strokeWidth={2} />
+                    <Line
+                      type="monotone"
+                      dataKey="hours"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -208,9 +241,12 @@ export default function Analytics() {
                   <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
                     <TrendingUp className="w-8 h-8 text-blue-400" />
                   </div>
-                  <p className="text-foreground font-medium mb-1">No data available</p>
+                  <p className="text-foreground font-medium mb-1">
+                    No data available
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Your learning progress will appear here once you start learning
+                    Your learning progress will appear here once you start
+                    learning
                   </p>
                 </div>
               </div>
@@ -226,7 +262,9 @@ export default function Analytics() {
           viewport={{ once: true }}
         >
           <Card className="bg-card border-border/50 p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">Weekly Activity</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Weekly Activity
+            </h3>
             {data.weekly_activity && data.weekly_activity.length > 0 ? (
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
@@ -235,10 +273,17 @@ export default function Analytics() {
                     <XAxis dataKey="day" stroke="#888" />
                     <YAxis stroke="#888" />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#1e293b', border: 'none' }}
-                      itemStyle={{ color: '#22d3ee' }}
+                      contentStyle={{
+                        backgroundColor: "#1e293b",
+                        border: "none",
+                      }}
+                      itemStyle={{ color: "#22d3ee" }}
                     />
-                    <Bar dataKey="duration" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="duration"
+                      fill="#06b6d4"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -248,9 +293,12 @@ export default function Analytics() {
                   <div className="w-16 h-16 rounded-full bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
                     <Calendar className="w-8 h-8 text-cyan-400" />
                   </div>
-                  <p className="text-foreground font-medium mb-1">No activity this week</p>
+                  <p className="text-foreground font-medium mb-1">
+                    No activity this week
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Get started with your first learning session to see weekly stats
+                    Get started with your first learning session to see weekly
+                    stats
                   </p>
                 </div>
               </div>
@@ -267,14 +315,20 @@ export default function Analytics() {
         viewport={{ once: true }}
       >
         <Card className="bg-card border-border/50 p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-6">Skill Progress</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">
+            Skill Progress
+          </h3>
           {data.skill_progress && data.skill_progress.length > 0 ? (
             <div className="space-y-6">
               {data.skill_progress.map((skill: any, i: number) => (
                 <div key={i}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-foreground">{skill.subject}</span>
-                    <span className="text-sm font-medium text-purple-400">{skill.score}%</span>
+                    <span className="text-sm font-medium text-foreground">
+                      {skill.subject}
+                    </span>
+                    <span className="text-sm font-medium text-purple-400">
+                      {skill.score}%
+                    </span>
                   </div>
                   <Progress value={skill.score} className="h-2" />
                 </div>
@@ -286,9 +340,12 @@ export default function Analytics() {
                 <div className="w-16 h-16 rounded-full bg-purple-500/10 flex items-center justify-center mb-4">
                   <Target className="w-8 h-8 text-purple-400" />
                 </div>
-                <p className="text-foreground font-medium mb-2">No skills tracked yet</p>
+                <p className="text-foreground font-medium mb-2">
+                  No skills tracked yet
+                </p>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Create a roadmap and take assessments to start tracking your skill progress
+                  Create a roadmap and take assessments to start tracking your
+                  skill progress
                 </p>
                 <Button size="sm" className="bg-primary hover:bg-blue-600">
                   Create Roadmap
@@ -307,18 +364,31 @@ export default function Analytics() {
         viewport={{ once: true }}
       >
         <Card className="bg-card border-border/50 p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-6">Assessment History</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">
+            Assessment History
+          </h3>
           {data.assessment_history && data.assessment_history.length > 0 ? (
             <div className="space-y-4">
               {data.assessment_history.map((assessment: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50">
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-4 rounded-lg bg-background border border-border/50"
+                >
                   <div>
-                    <h4 className="text-sm font-semibold text-foreground mb-1">{assessment.topic}</h4>
-                    <p className="text-xs text-muted-foreground">{assessment.date}</p>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">
+                      {assessment.topic}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      {assessment.date}
+                    </p>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-green-400 mb-1">{assessment.percentage}%</div>
-                    <p className="text-xs text-muted-foreground">{assessment.score} / {assessment.total} correct</p>
+                    <div className="text-sm font-bold text-green-400 mb-1">
+                      {assessment.percentage}%
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {assessment.score} / {assessment.total} correct
+                    </p>
                   </div>
                 </div>
               ))}
@@ -328,9 +398,12 @@ export default function Analytics() {
               <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-4">
                 <Clock className="w-8 h-8 text-orange-400" />
               </div>
-              <p className="text-foreground font-medium mb-2">No assessments completed</p>
+              <p className="text-foreground font-medium mb-2">
+                No assessments completed
+              </p>
               <p className="text-sm text-muted-foreground mb-4">
-                Complete your first assessment to see your assessment history and scores
+                Complete your first assessment to see your assessment history
+                and scores
               </p>
               <Button size="sm" className="bg-primary hover:bg-blue-600">
                 Take Assessment
@@ -348,13 +421,18 @@ export default function Analytics() {
         viewport={{ once: true }}
       >
         <Card className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-blue-500/20 p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">AI Insights</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            AI Insights
+          </h3>
           <div className="space-y-3">
             <p className="text-muted-foreground">
-              📊 No data available yet. Once you start learning, AI insights will help you:
+              📊 No data available yet. Once you start learning, AI insights
+              will help you:
             </p>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• Identify your learning patterns and optimal times to study</li>
+              <li>
+                • Identify your learning patterns and optimal times to study
+              </li>
               <li>• Get personalized recommendations based on your progress</li>
               <li>• Receive motivation and encouragement to stay on track</li>
               <li>• Understand where you need to focus your efforts</li>
@@ -363,5 +441,5 @@ export default function Analytics() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }
