@@ -26,8 +26,18 @@ def get_analytics_summary(
 
     # Total learning hours (just mock it or use roadmap expected hours if implemented, let's return 0 for now or calculate from completed roadmaps)
     # We will return mock data since we don't track time
-    total_learning_hours = 12
+    roadmaps = db.query(Roadmap).filter(
+    Roadmap.user_id == user_id
+    ).all()
 
+    total_learning_hours = 0
+
+    for roadmap in roadmaps:
+      if roadmap.created_at:
+        days = (datetime.utcnow().date() - roadmap.created_at.date()).days
+
+        if days > 0:
+            total_learning_hours += days * roadmap.hours_per_day
     # Assessment history over time
     assessments = db.query(Assessment).filter(
         Assessment.user_id == user_id
@@ -52,7 +62,8 @@ def get_analytics_summary(
         })
 
     # Average Daily Time
-    avg_daily_time = "45 min"
+    total_daily_hours = sum(r.hours_per_day for r in roadmaps)
+    avg_daily_time = f"{total_daily_hours} hr"
 
     # Let's create learning progress chart data (monthly)
     # Group assessments by month

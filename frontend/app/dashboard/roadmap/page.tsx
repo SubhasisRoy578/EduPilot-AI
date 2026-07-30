@@ -39,7 +39,7 @@ export default function Roadmap() {
   const [formData, setFormData] = useState({
     goal: "",
     currentSkill: "beginner",
-    hoursPerWeek: "5",
+    hoursPerDay: "3",
     description: "",
   });
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
@@ -67,28 +67,35 @@ export default function Roadmap() {
     try {
       const token = localStorage.getItem("token");
 
-      // Call Grok to generate roadmap
-      await axios.post("http://127.0.0.1:8000/grok/test", {
-        goal: formData.goal,
-      });
-
       const title = formData.goal.split(" ").slice(0, 5).join(" ") + "...";
-      await axios.post(
-        "http://127.0.0.1:8000/roadmap/create",
-        {
-          title: title,
-          description: formData.goal,
-        },
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
+
+      await axios.post("http://127.0.0.1:8000/roadmap/create",
+       {   
+         title,
+         description: formData.goal,
+         hours_per_day: parseInt(formData.hoursPerDay),
+       },
+       {
+        headers: {
+        Authorization: `Bearer ${token}`,
+       },
+       }
+       );
 
       await fetchRoadmaps();
       setShowForm(false);
-      setFormData({ ...formData, goal: "", description: "" });
-    } catch (error) {
-      console.error("Error creating roadmap", error);
-      alert("Failed to create roadmap");
-    } finally {
+      setFormData({ goal: "", currentSkill: "beginner", hoursPerDay: "3",description: "",});
+    } catch (error: any) {
+  console.log(error);
+
+  if (axios.isAxiosError(error)) {
+    console.log(error.response);
+    console.log(error.response?.data);
+    console.log(error.response?.status);
+  }
+
+  alert("Failed to create roadmap");
+} finally {
       setLoading(false);
     }
   };
@@ -150,11 +157,11 @@ export default function Roadmap() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="hoursPerWeek">Hours Available Per Week</Label>
+                  <Label htmlFor="hoursPerDay">Hours Available Per Day</Label>
                   <select
-                    value={formData.hoursPerWeek}
+                    value={formData.hoursPerDay}
                     onChange={(e) =>
-                      setFormData({ ...formData, hoursPerWeek: e.target.value })
+                      setFormData({ ...formData, hoursPerDay: e.target.value })
                     }
                   >
                     <option value="3">3 hours</option>

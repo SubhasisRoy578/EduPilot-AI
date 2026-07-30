@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 
 from app.database.database import Base
-
 
 class Roadmap(Base):
     __tablename__ = "roadmaps"
@@ -11,6 +11,10 @@ class Roadmap(Base):
     title = Column(String, nullable=False)
     description = Column(String)
     status = Column(String, default="Not Started")
+
+    # NEW FIELDS
+    hours_per_day = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
     user_id = Column(Integer, ForeignKey("users.id"))
 

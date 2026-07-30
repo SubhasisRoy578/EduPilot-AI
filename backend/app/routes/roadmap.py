@@ -20,11 +20,11 @@ def create_roadmap(
     current_user: User = Depends(get_current_user)
 ):
     new_roadmap = Roadmap(
-        title=roadmap.title,
-        description=roadmap.description,
-        user_id=current_user.id
+    title=roadmap.title,
+    description=roadmap.description,
+    hours_per_day=roadmap.hours_per_day,
+    user_id=current_user.id
     )
-
     db.add(new_roadmap)
     db.commit()
     db.refresh(new_roadmap)
