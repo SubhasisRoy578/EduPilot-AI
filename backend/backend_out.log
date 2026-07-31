@@ -1,0 +1,36 @@
+INFO:     Started server process [113165]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51004 - "POST /doubt-solver HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51008 - "POST /register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51014 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51028 - "POST /roadmap/create HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51040 - "POST /roadmap/1/learn-today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51054 - "POST /roadmap/1/learn-today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:51068 - "POST /assessment/submit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51070 - "GET /roadmap/1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55840 - "POST /doubt-solver HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55842 - "POST /register HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55858 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55870 - "POST /roadmap/create HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55884 - "POST /roadmap/2/learn-today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55900 - "POST /roadmap/2/learn-today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:55916 - "POST /assessment/submit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55930 - "GET /roadmap/2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58418 - "OPTIONS /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58420 - "GET /me HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53466 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:36196 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:58424 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:38278 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:45276 - "POST /login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:57382 - "POST /login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57382 - "OPTIONS /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57396 - "GET /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57382 - "GET /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57396 - "OPTIONS /roadmap/my HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57382 - "GET /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57382 - "GET /me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57404 - "GET /roadmap/my HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57382 - "GET /roadmap/my HTTP/1.1" 200 OK

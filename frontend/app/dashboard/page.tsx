@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -302,6 +303,33 @@ export default function Dashboard() {
                   </Card>
                 )}
               </div>
+
+              {/* Today's Learning Section */}
+              {activeRoadmaps.length > 0 && (
+                <div className="space-y-4 mb-6">
+                  <h4 className="text-md font-semibold flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    Today's Learning
+                  </h4>
+                  {activeRoadmaps.map((rm) => (
+                    <Card key={`daily-${rm.id}`} className="p-4 border-yellow-500/20 bg-yellow-500/5">
+                      <div className="flex flex-col gap-2">
+                        <h5 className="font-medium text-foreground">{rm.title}</h5>
+                        <p className="text-sm text-muted-foreground">Today's suggested lesson: Keep progressing on your roadmap.</p>
+                        <div className="flex gap-2 mt-2">
+                          <Button size="sm" className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30" onClick={() => handleLearnToday(rm.id)}>
+                            Learnt Today's Lesson
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleNotYet(rm.id)}>
+                            Not Yet (Learn Now)
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
               {/* Active & Completed Roadmaps */}
               {roadmaps.length > 0 ? (
                 <div className="space-y-6 mt-6">
@@ -322,14 +350,39 @@ export default function Dashboard() {
                                 {rm.description}
                               </p>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="ml-4 flex-shrink-0"
-                              onClick={() => openStageDialog(rm)}
-                            >
-                              Test Skill
-                            </Button>
+                                                        <div className="w-full flex-1 min-w-[200px] mt-3">
+                              <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                                <span>{rm.completed_weeks || 0} / {rm.total_weeks || 8} Weeks</span>
+                                <span>{Math.round(((rm.completed_weeks || 0) / (rm.total_weeks || 8)) * 100)}%</span>
+                              </div>
+                              <Progress value={((rm.completed_weeks || 0) / (rm.total_weeks || 8)) * 100} className="h-1.5" />
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-4">
+                              {[
+                                { stage: "just_started", label: "Week 1 Test", req_weeks: 0 },
+                                { stage: "mediocre", label: "Week 3 Test", req_weeks: 1 },
+                                { stage: "almost_complete", label: "Week 5 Test", req_weeks: 3 },
+                                { stage: "completed", label: "Week 8 Test", req_weeks: 5 },
+                              ].map((test, idx) => {
+                                const isUnlocked = (rm.completed_weeks || 0) >= test.req_weeks;
+                                return (
+                                  <Button
+                                    key={idx}
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400 relative z-10"
+                                    disabled={!isUnlocked}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      router.push(`/dashboard/assessment?topic=${encodeURIComponent(rm.title)}&stage=${test.stage}&roadmap_id=${rm.id}`);
+                                    }}
+                                  >
+                                    {test.label}
+                                  </Button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </Card>
                       ))}
