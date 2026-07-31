@@ -3,13 +3,13 @@
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   MapPin,
   CheckCircle,
   BarChart3,
-  Settings,
+  Settings as SettingsIcon,
   User,
   Menu,
   X,
@@ -17,7 +17,8 @@ import {
   Brain,
   LogOut,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const navItems = [
   {
@@ -48,7 +49,56 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        router.push('/auth/signin')
+        return
+      }
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/me', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        setUser(response.data)
+      } catch (error) {
+        console.error('Error fetching user', error)
+        localStorage.removeItem('token')
+        router.push('/auth/signin')
+      }
+    }
+    fetchUser()
+  }, [router])
+
+  const handleSignOut = () => {
+    localStorage.removeItem('token')
+    router.push('/auth/signin')
+  }
+
+  const getDisplayName = () => {
+    if (user?.first_name) return user.first_name
+    if (user?.email) return user.email.split('@')[0]
+    return 'User'
+  }
+
+  const getInitials = () => {
+    if (user?.first_name && user?.last_name) {
+      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase()
+    }
+    if (user?.first_name) return user.first_name[0].toUpperCase()
+    if (user?.email) return user.email[0].toUpperCase()
+    return 'U'
+  }
+
+  if (!user) {
+    return <div className="flex h-screen items-center justify-center bg-background"><p>Loading...</p></div>
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -130,13 +180,14 @@ export default function DashboardLayout({
                   : 'text-muted-foreground hover:bg-accent/10'
               }`}
             >
-              <Settings className="w-5 h-5 flex-shrink-0" />
+              <SettingsIcon className="w-5 h-5 flex-shrink-0" />
               {sidebarOpen && <span className="text-sm">Settings</span>}
             </Button>
           </Link>
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 h-auto py-2 px-4 text-destructive hover:bg-destructive/10"
+            onClick={handleSignOut}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {sidebarOpen && <span className="text-sm">Sign Out</span>}
@@ -151,11 +202,11 @@ export default function DashboardLayout({
           <h1 className="text-lg font-semibold text-foreground">Dashboard</h1>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-foreground">Welcome back!</p>
+              <p className="text-sm font-medium text-foreground">{getDisplayName()}</p>
               <p className="text-xs text-muted-foreground">Ready to learn?</p>
             </div>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <span className="text-sm font-semibold text-white">JD</span>
+              <span className="text-sm font-semibold text-white">{getInitials()}</span>
             </div>
           </div>
         </div>
