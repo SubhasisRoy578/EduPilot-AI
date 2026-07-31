@@ -99,3 +99,54 @@ def delete_roadmap(
     db.commit()
 
     return {"message": "Roadmap deleted successfully"}
+from datetime import date, timedelta
+from app.models.activity import UserActivity
+
+@router.post("/{roadmap_id}/learn-today")
+def learn_today(
+    roadmap_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    roadmap = db.query(Roadmap).filter(
+        Roadmap.id == roadmap_id,
+        Roadmap.user_id == current_user.id
+    ).first()
+
+    if not roadmap:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+
+    today = date.today()
+
+    if roadmap.last_learned_date == today:
+        raise HTTPException(status_code=400, detail="Already claimed today's lesson for this roadmap")
+
+    roadmap.last_learned_date = today
+
+    # Update activity
+    activity = db.query(UserActivity).filter(
+        UserActivity.user_id == current_user.id,
+        UserActivity.date == today
+    ).first()
+
+    hours = roadmap.hours_per_day
+    if hours == 0:
+        hours = 2 # default if 0
+
+    if activity:
+        activity.hours += hours
+    else:
+        activity = UserActivity(user_id=current_user.id, date=today, hours=hours)
+        db.add(activity)
+
+    # Update streak if needed
+    if current_user.last_login != today:
+        if current_user.last_login == today - timedelta(days=1):
+            current_user.streak += 1
+        elif current_user.last_login is None or current_user.last_login < today - timedelta(days=1):
+            current_user.streak = 1
+        current_user.last_login = today
+
+    db.commit()
+
+    return {"message": "Lesson claimed successfully"}

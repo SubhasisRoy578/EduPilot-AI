@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Brain,
   LogOut,
+  MessageSquare,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import axios from 'axios'
@@ -35,6 +36,11 @@ const navItems = [
     label: 'Assessment',
     href: '/dashboard/assessment',
     icon: CheckCircle,
+  },
+  {
+    label: 'AI Doubt Solver',
+    href: '/dashboard/doubt-solver',
+    icon: MessageSquare,
   },
   {
     label: 'Analytics',

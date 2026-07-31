@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Date
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -15,6 +15,12 @@ class Roadmap(Base):
     # NEW FIELDS
     hours_per_day = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # New Milestone & Progress fields
+    completed_milestones = Column(Integer, default=0)
+    completed_weeks = Column(Integer, default=0)
+    total_weeks = Column(Integer, default=8)
+    last_learned_date = Column(Date, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
 

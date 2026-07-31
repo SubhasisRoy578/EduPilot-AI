@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import Optional
+from datetime import date
 
 class RoadmapCreate(BaseModel):
     title: str
@@ -11,6 +13,11 @@ class RoadmapResponse(BaseModel):
     description: str
     status: str
     hours_per_day: int
+
+    completed_milestones: int = 0
+    completed_weeks: int = 0
+    total_weeks: int = 8
+    last_learned_date: Optional[date] = None
 
     class Config:
         from_attributes = True

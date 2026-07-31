@@ -1,13 +1,15 @@
 from openai import OpenAI
-
 from app.core.config import settings
 
-client = OpenAI(
-    api_key=settings.GROQ_API_KEY,
-    base_url="https://api.groq.com/openai/v1",
-)
+def _get_client():
+    return OpenAI(
+        api_key=settings.GROQ_API_KEY,
+        base_url="https://api.groq.com/openai/v1",
+    )
 
+client = _get_client()
 
+# Update generate_roadmap, generate_study_guide, generate_quiz, generate_recommendations to use client
 def generate_roadmap(goal: str):
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
@@ -26,7 +28,6 @@ def generate_roadmap(goal: str):
         ],
         temperature=0.7,
     )
-
     return response.choices[0].message.content
 
 def generate_study_guide(goal: str) -> str:
@@ -57,38 +58,17 @@ def generate_study_guide(goal: str) -> str:
     """
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
     return response.choices[0].message.content
 
-
 DIFFICULTY_GUIDANCE = {
-    "easy": (
-        "EASY difficulty: beginner-friendly questions covering basic "
-        "definitions, terminology, and fundamental concepts."
-    ),
-    "medium": (
-        "MEDIUM difficulty: intermediate questions covering practical usage, "
-        "common patterns, and applied understanding of the topic."
-    ),
-    "hard": (
-        "HARD difficulty: advanced questions covering edge cases, best "
-        "practices, debugging scenarios, and deeper conceptual understanding."
-    ),
-    "expert": (
-        "EXPERT difficulty: mastery-level questions covering advanced "
-        "internals, tricky edge cases, performance considerations, and "
-        "nuanced real-world scenarios. These should challenge someone who "
-        "has completed learning the topic."
-    ),
+    "easy": "EASY difficulty: beginner-friendly questions covering basic definitions, terminology, and fundamental concepts.",
+    "medium": "MEDIUM difficulty: intermediate questions covering practical usage, common patterns, and applied understanding of the topic.",
+    "hard": "HARD difficulty: advanced questions covering edge cases, best practices, debugging scenarios, and deeper conceptual understanding.",
+    "expert": "EXPERT difficulty: mastery-level questions covering advanced internals, tricky edge cases, performance considerations, and nuanced real-world scenarios. These should challenge someone who has completed learning the topic.",
 }
-
 
 def generate_quiz(topic: str, difficulty: str = "easy") -> str:
     guidance = DIFFICULTY_GUIDANCE.get(difficulty, DIFFICULTY_GUIDANCE["easy"])
@@ -105,24 +85,17 @@ def generate_quiz(topic: str, difficulty: str = "easy") -> str:
                 "question": "Question text here?",
                 "options": ["Option A", "Option B", "Option C", "Option D"],
                 "correct_answer": "Option B"
-            }},
-            ...
+            }}
         ]
     }}
     Do not wrap the JSON in markdown code blocks. Ensure the output is valid JSON.
     """
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
     )
     return response.choices[0].message.content
-
 
 def generate_recommendations(topic: str, score: int, total: int) -> str:
     prompt = f"""
@@ -133,12 +106,7 @@ def generate_recommendations(topic: str, score: int, total: int) -> str:
     """
     response = client.chat.completions.create(
         model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            },
-        ],
+        messages=[{"role": "user", "content": prompt}],
         temperature=0.7,
     )
     return response.choices[0].message.content

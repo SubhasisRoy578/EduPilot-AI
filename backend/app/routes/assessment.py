@@ -61,23 +61,30 @@ def submit_assessment(
 
     db.add(new_assessment)
 
+
     # If the user said they Completed Learning and scored 90% or above,
     # automatically mark the linked roadmap as Completed.
     roadmap_completed = False
-    if (
-        request.stage == "completed"
-        and request.roadmap_id is not None
-        and request.total_questions > 0
-        and (request.score / request.total_questions) >= 0.9
-    ):
+    if request.roadmap_id is not None and request.total_questions > 0:
         db_roadmap = db.query(Roadmap).filter(
             Roadmap.id == request.roadmap_id,
             Roadmap.user_id == current_user.id
         ).first()
 
-        if db_roadmap and db_roadmap.status != "Completed":
-            db_roadmap.status = "Completed"
-            roadmap_completed = True
+        if db_roadmap:
+            pass_ratio = request.score / request.total_questions
+            if request.stage == "just_started" and pass_ratio >= 0.5:
+                db_roadmap.completed_weeks = max(db_roadmap.completed_weeks or 0, 1)
+            elif request.stage == "mediocre" and pass_ratio >= 0.5:
+                db_roadmap.completed_weeks = max(db_roadmap.completed_weeks or 0, 3)
+            elif request.stage == "almost_complete" and pass_ratio >= 0.5:
+                db_roadmap.completed_weeks = max(db_roadmap.completed_weeks or 0, 5)
+            elif request.stage == "completed" and pass_ratio >= 0.9:
+                db_roadmap.completed_weeks = db_roadmap.total_weeks or 8
+                if db_roadmap.status != "Completed":
+                    db_roadmap.status = "Completed"
+                    roadmap_completed = True
+
 
     db.commit()
     db.refresh(new_assessment)
