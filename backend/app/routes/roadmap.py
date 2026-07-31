@@ -43,6 +43,22 @@ def get_my_roadmaps(
 
     return roadmaps
 
+@router.get("/{roadmap_id}", response_model=RoadmapResponse)
+def get_roadmap(
+    roadmap_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    roadmap = db.query(Roadmap).filter(
+        Roadmap.id == roadmap_id,
+        Roadmap.user_id == current_user.id
+    ).first()
+
+    if not roadmap:
+        raise HTTPException(status_code=404, detail="Roadmap not found")
+
+    return roadmap
+
 @router.put("/{roadmap_id}", response_model=RoadmapResponse)
 def update_roadmap_status(
     roadmap_id: int,
