@@ -29,6 +29,44 @@ def generate_roadmap(goal: str):
 
     return response.choices[0].message.content
 
+def generate_study_guide(goal: str) -> str:
+    prompt = f"""
+    You are an expert education mentor.
+    Create a highly detailed, personalized study guide and learning roadmap for the following goal: "{goal}".
+
+    Return ONLY a JSON object representing the study guide with the exact following structure:
+    {{
+        "weeks": [
+            {{
+                "week": "Week 1",
+                "topic": "Topic name here",
+                "tasks": ["Task 1", "Task 2"],
+                "practice": "Practice strategy here"
+            }}
+        ],
+        "resources": ["Resource 1", "Resource 2"],
+        "important_concepts": ["Concept 1", "Concept 2"],
+        "common_mistakes": ["Mistake 1", "Mistake 2"],
+        "exam_tips": ["Tip 1", "Tip 2"],
+        "practice_strategy": "Overall practice strategy",
+        "revision_schedule": "Recommended revision schedule",
+        "motivational_message": "A short personalized motivational message",
+        "motivational_speech": "An original motivational speech inspired by famous educators"
+    }}
+    Do not wrap the JSON in markdown code blocks. Ensure the output is valid JSON.
+    """
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            },
+        ],
+        temperature=0.7,
+    )
+    return response.choices[0].message.content
+
 
 DIFFICULTY_GUIDANCE = {
     "easy": (

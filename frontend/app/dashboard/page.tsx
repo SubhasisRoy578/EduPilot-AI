@@ -44,6 +44,7 @@ export default function Dashboard() {
     name: "",
     email: "",
     role: "",
+    streak: 0,
   });
 
   const [goal, setGoal] = useState("");
@@ -86,7 +87,12 @@ export default function Dashboard() {
           },
         });
 
-        setUser(response.data);
+        setUser({
+          name: `${response.data.first_name} ${response.data.last_name}`,
+          email: response.data.email,
+          role: response.data.role,
+          streak: response.data.streak,
+        });
       } catch (error) {
         console.error("Error fetching user:", error);
       }
@@ -187,7 +193,7 @@ export default function Dashboard() {
           {
             icon: Flame,
             label: "Current Streak",
-            value: "7 days",
+            value: `${user.streak || 0} days`,
             subtext: "Keep it going!",
             color: "from-orange-500 to-red-500",
           },

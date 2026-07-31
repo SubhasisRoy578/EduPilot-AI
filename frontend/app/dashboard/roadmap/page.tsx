@@ -289,32 +289,38 @@ export default function Roadmap() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
                 >
-                  <Card className="group bg-card hover:bg-card/80 border-border/50 hover:border-blue-500/30 p-6 transition-all flex flex-col h-full">
-                    <div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4 opacity-20 group-hover:opacity-30 transition-opacity`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-blue-400 transition">
-                      {roadmap.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
-                      {roadmap.description}
-                    </p>
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/20">
-                      <span className="text-xs text-muted-foreground">
-                        {roadmap.status || "Active"}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400"
-                        onClick={() => openStageDialog(roadmap)}
+                  <Link href={`/dashboard/roadmap/${roadmap.id}`}>
+                    <Card className="group bg-card hover:bg-card/80 border-border/50 hover:border-blue-500/30 p-6 transition-all flex flex-col h-full cursor-pointer">
+                      <div
+                        className={`w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mb-4 opacity-20 group-hover:opacity-30 transition-opacity`}
                       >
-                        Test Skill
-                      </Button>
-                    </div>
-                  </Card>
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-blue-400 transition">
+                        {roadmap.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
+                        {roadmap.description}
+                      </p>
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/20">
+                        <span className="text-xs text-muted-foreground">
+                          {roadmap.status || "Active"}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400 relative z-10"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            openStageDialog(roadmap);
+                          }}
+                        >
+                          Test Skill
+                        </Button>
+                      </div>
+                    </Card>
+                  </Link>
                 </motion.div>
               );
             })}
@@ -343,25 +349,27 @@ export default function Roadmap() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
                 >
-                  <Card className="group bg-card hover:bg-card/80 border-green-500/20 hover:border-green-500/40 p-6 transition-all flex flex-col h-full">
-                    <div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-4 opacity-20 group-hover:opacity-30 transition-opacity`}
-                    >
-                      <Icon className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-green-400 transition">
-                      {roadmap.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
-                      {roadmap.description}
-                    </p>
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/20">
-                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500/10 text-green-400 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        Completed
-                      </span>
-                    </div>
-                  </Card>
+                  <Link href={`/dashboard/roadmap/${roadmap.id}`}>
+                    <Card className="group bg-card hover:bg-card/80 border-green-500/20 hover:border-green-500/40 p-6 transition-all flex flex-col h-full cursor-pointer">
+                      <div
+                        className={`w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-4 opacity-20 group-hover:opacity-30 transition-opacity`}
+                      >
+                        <Icon className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-green-400 transition">
+                        {roadmap.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
+                        {roadmap.description}
+                      </p>
+                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/20">
+                        <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500/10 text-green-400 flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Completed
+                        </span>
+                      </div>
+                    </Card>
+                  </Link>
                 </motion.div>
               );
             })}

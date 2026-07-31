@@ -9,6 +9,8 @@ from app.models.user import User
 from app.auth.auth_handler import get_current_user
 from datetime import datetime, timedelta
 
+from app.models.activity import UserActivity
+
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 @router.get("/summary")
@@ -62,34 +64,51 @@ def get_analytics_summary(
         })
 
     # Average Daily Time
-    total_daily_hours = sum(r.hours_per_day for r in roadmaps)
+    total_daily_hours = sum(r.hours_per_day for r in roadmaps if r.status != "Completed")
     avg_daily_time = f"{total_daily_hours} hr"
 
     # Let's create learning progress chart data (monthly)
-    # Group assessments by month
+    # The requirement is "The learning progress graph should use real roadmap progress and completed stages over time."
     monthly_data = {
         'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0,
         'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
     }
+    # Add assessments to progress
     for a in assessments:
         month = a.created_at.strftime("%b")
         if month in monthly_data:
             monthly_data[month] += 1
+    # Add completed roadmaps to progress
+    for r in roadmaps:
+        if r.status == "Completed" and r.created_at:
+            month = r.created_at.strftime("%b")
+            if month in monthly_data:
+                monthly_data[month] += 1
 
     learning_progress = [
         {"month": k, "hours": v} for k, v in monthly_data.items()
     ]
 
-    # Weekly Activity
-    weekly_activity = [
-        {"day": "Mon", "duration": 30},
-        {"day": "Tue", "duration": 45},
-        {"day": "Wed", "duration": 20},
-        {"day": "Thu", "duration": 60},
-        {"day": "Fri", "duration": 15},
-        {"day": "Sat", "duration": 90},
-        {"day": "Sun", "duration": 0},
-    ]
+    # Weekly Activity - Real data from UserActivity (last 7 days)
+    today = datetime.utcnow().date()
+    seven_days_ago = today - timedelta(days=6)
+    activities = db.query(UserActivity).filter(
+        UserActivity.user_id == user_id,
+        UserActivity.date >= seven_days_ago,
+        UserActivity.date <= today
+    ).order_by(UserActivity.date.asc()).all()
+
+    activity_dict = {a.date: a.hours for a in activities}
+
+    weekly_activity = []
+    for i in range(7):
+        d = seven_days_ago + timedelta(days=i)
+        day_str = d.strftime("%b %-d") if "%-d" in d.strftime("%b %-d") else d.strftime("%b %d").replace(" 0", " ")
+        hours = activity_dict.get(d, 0)
+        weekly_activity.append({
+            "day": day_str,
+            "duration": hours
+        })
 
     return {
         "stats": {

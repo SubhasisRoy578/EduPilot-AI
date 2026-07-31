@@ -13,10 +13,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.models.roadmap import Roadmap
+from app.models.activity import UserActivity
 from app.routes.roadmap import router as roadmap_router
 from app.routes.assessment import router as assessment_router
 from app.routes.analytics import router as analytics_router
-from app.services.grok_service import generate_roadmap
+from app.services.grok_service import generate_roadmap, generate_study_guide
 from pydantic import BaseModel
 
 Base.metadata.create_all(bind=engine)
@@ -95,6 +96,40 @@ def login(
     if not verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid password")
 
+    # Update streak and last login
+    from datetime import date, timedelta
+    today = date.today()
+    if db_user.last_login != today:
+        if db_user.last_login is None:
+            db_user.streak = 1
+        elif db_user.last_login == today - timedelta(days=1):
+            db_user.streak += 1
+        # if skipped days, keep previous streak value
+
+        db_user.last_login = today
+        db.commit()
+
+    # Calculate today's study hours from active roadmaps
+    active_roadmaps = db.query(Roadmap).filter(
+        Roadmap.user_id == db_user.id,
+        Roadmap.status != "Completed"
+    ).all()
+    today_hours = sum(rm.hours_per_day for rm in active_roadmaps)
+
+    # Insert or update today's activity
+    activity = db.query(UserActivity).filter(
+        UserActivity.user_id == db_user.id,
+        UserActivity.date == today
+    ).first()
+
+    if activity:
+        activity.hours = today_hours
+    else:
+        activity = UserActivity(user_id=db_user.id, date=today, hours=today_hours)
+        db.add(activity)
+
+    db.commit()
+
     access_token = create_access_token(
         data={"sub": db_user.email}
     )
@@ -111,7 +146,8 @@ def get_me(current_user: User = Depends(get_current_user)):
         "last_name": current_user.last_name,
         "email": current_user.email,
         "bio": current_user.bio,
-        "role": current_user.role
+        "role": current_user.role,
+        "streak": current_user.streak
     }
 
 @app.put("/me")
@@ -167,6 +203,16 @@ class GrokRequest(BaseModel):
 def test_grok(request: GrokRequest):
     roadmap = generate_roadmap(request.goal)
     return {"roadmap": roadmap}
+
+@app.post("/grok/study-guide")
+def get_study_guide(request: GrokRequest):
+    import json
+    guide = generate_study_guide(request.goal)
+    try:
+        parsed_guide = json.loads(guide)
+        return parsed_guide
+    except Exception as e:
+        return {"error": "Failed to parse JSON from AI", "raw": guide}
 """
 @app.post("/register")
 def register(user: UserCreate):
