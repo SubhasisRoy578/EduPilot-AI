@@ -8,13 +8,45 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 import { useState } from 'react'
-import { ArrowRight, Mail, Lock, User } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, Mail, Lock, User, FileText } from 'lucide-react'
+import axios from 'axios'
 
 export default function SignUp() {
-  const [name, setName] = useState('')
+  const router = useRouter()
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [bio, setBio] = useState('')
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg('')
+
+    if (!agreeTerms) return
+
+    try {
+      await axios.post('http://127.0.0.1:8000/register', {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        password: password,
+        bio: bio
+      })
+      alert('Registration Successful!')
+      router.push('/auth/signin')
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.detail) {
+        setErrorMsg(error.response.data.detail)
+      } else {
+        setErrorMsg('An error occurred during registration.')
+      }
+      console.error(error)
+    }
+  }
 
   return (
     <motion.div
@@ -26,17 +58,57 @@ export default function SignUp() {
         <h1 className="text-2xl font-bold text-foreground mb-2">Get Started</h1>
         <p className="text-muted-foreground mb-6">Create your EduPilot account and start learning</p>
 
-        <form className="space-y-4">
+        {errorMsg && (
+          <div className="p-3 mb-4 text-sm text-red-500 bg-red-100/10 border border-red-500/50 rounded-md">
+            {errorMsg}
+          </div>
+        )}
+
+        <form className="space-y-4" onSubmit={handleRegister}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="John"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="pl-10 bg-input/50 border-border/50 focus:border-blue-500/50"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Doe"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="pl-10 bg-input/50 border-border/50 focus:border-blue-500/50"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="bio">Bio</Label>
             <div className="relative">
-              <User className="absolute left-3 top-3 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <FileText className="absolute left-3 top-3 w-5 h-5 text-muted-foreground pointer-events-none" />
               <Input
-                id="name"
+                id="bio"
                 type="text"
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Tell us about yourself"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
                 className="pl-10 bg-input/50 border-border/50 focus:border-blue-500/50"
               />
             </div>
@@ -68,6 +140,7 @@ export default function SignUp() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10 bg-input/50 border-border/50 focus:border-blue-500/50"
+                required
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -93,7 +166,7 @@ export default function SignUp() {
             </Label>
           </div>
 
-          <Button className="w-full bg-primary hover:bg-blue-600 mt-6" disabled={!agreeTerms}>
+          <Button type="submit" className="w-full bg-primary hover:bg-blue-600 mt-6" disabled={!agreeTerms}>
             Create Account <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </form>

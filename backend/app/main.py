@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserUpdate
 from app.models.user import User
 from app.database.database import SessionLocal
 from app.database.database import Base, engine
@@ -49,8 +49,14 @@ def register(user: UserCreate):
     db = SessionLocal()
 
     try:
+        existing_user = db.query(User).filter(User.email == user.email).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
         new_user = User(
-            name=user.name,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            bio=user.bio,
             email=user.email,
             hashed_password=hash_password(user.password)
         )
@@ -64,6 +70,8 @@ def register(user: UserCreate):
             "id": new_user.id
         }
 
+    except HTTPException as he:
+        raise he
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
@@ -99,10 +107,55 @@ def login(
 def get_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
-        "name": current_user.name,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
         "email": current_user.email,
+        "bio": current_user.bio,
         "role": current_user.role
     }
+
+@app.put("/me")
+def update_me(user_update: UserUpdate, current_user: User = Depends(get_current_user)):
+    db = SessionLocal()
+    try:
+        db_user = db.query(User).filter(User.id == current_user.id).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        if user_update.first_name is not None:
+            db_user.first_name = user_update.first_name
+        if user_update.last_name is not None:
+            db_user.last_name = user_update.last_name
+        if user_update.email is not None:
+            db_user.email = user_update.email
+        if user_update.bio is not None:
+            db_user.bio = user_update.bio
+
+        db.commit()
+        db.refresh(db_user)
+        return {"message": "Profile updated successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+@app.delete("/me")
+def delete_me(current_user: User = Depends(get_current_user)):
+    db = SessionLocal()
+    try:
+        db_user = db.query(User).filter(User.id == current_user.id).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        db.delete(db_user)
+        db.commit()
+        return {"message": "User deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
 
 
 
