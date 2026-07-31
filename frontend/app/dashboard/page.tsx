@@ -7,6 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  StageSelectDialog,
+  type LearningStage,
+} from "@/components/stage-select-dialog";
 import {
   Target,
   Flame,
@@ -34,6 +39,7 @@ const staggerContainer = {
 };
 
 export default function Dashboard() {
+  const router = useRouter();
   const [user, setUser] = useState({
     name: "",
     email: "",
@@ -43,9 +49,31 @@ export default function Dashboard() {
   const [goal, setGoal] = useState("");
 
   const [roadmap, setRoadmap] = useState("");
-  const [recentRoadmaps, setRecentRoadmaps] = useState<any[]>([]);
+  const [roadmaps, setRoadmaps] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
+
+  // Stage selection dialog state for "Test Skill"
+  const [stageDialogOpen, setStageDialogOpen] = useState(false);
+  const [selectedRoadmap, setSelectedRoadmap] = useState<any>(null);
+
+  const activeRoadmaps = roadmaps.filter((rm) => rm.status !== "Completed");
+  const completedRoadmaps = roadmaps.filter(
+    (rm) => rm.status === "Completed",
+  );
+
+  const openStageDialog = (rm: any) => {
+    setSelectedRoadmap(rm);
+    setStageDialogOpen(true);
+  };
+
+  const handleStageSelect = (stage: LearningStage) => {
+    if (!selectedRoadmap) return;
+    setStageDialogOpen(false);
+    router.push(
+      `/dashboard/assessment?topic=${encodeURIComponent(selectedRoadmap.title)}&stage=${stage}&roadmap_id=${selectedRoadmap.id}`,
+    );
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -72,10 +100,8 @@ export default function Dashboard() {
         const response = await axios.get("http://127.0.0.1:8000/roadmap/my", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const sorted = response.data
-          .sort((a: any, b: any) => b.id - a.id)
-          .slice(0, 2);
-        setRecentRoadmaps(sorted);
+        const sorted = response.data.sort((a: any, b: any) => b.id - a.id);
+        setRoadmaps(sorted);
       } catch (error) {
         console.error("Error fetching roadmaps:", error);
       }
@@ -95,28 +121,21 @@ export default function Dashboard() {
       // Also save it
       const token = localStorage.getItem("token");
       const title = goal.split(" ").slice(0, 5).join(" ") + "..."; // Create a simple title
-      await axios.post(
+      const createResponse = await axios.post(
         "http://127.0.0.1:8000/roadmap/create",
         {
           title: title,
           description: goal,
+          hours_per_day: 0,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      // Refresh list
-      const roadmapsResponse = await axios.get(
-        "http://127.0.0.1:8000/roadmap/my",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const sorted = roadmapsResponse.data
-        .sort((a: any, b: any) => b.id - a.id)
-        .slice(0, 2);
-      setRecentRoadmaps(sorted);
+      // Update the list immediately with the newly created roadmap
+      // (no page refresh needed)
+      setRoadmaps((prev) => [createResponse.data, ...prev]);
     } catch (error) {
       console.error("Error generating roadmap:", error);
       alert("Failed to generate roadmap");
@@ -175,15 +194,18 @@ export default function Dashboard() {
           {
             icon: Target,
             label: "Active Roadmaps",
-            value: "2",
+            value: `${activeRoadmaps.length}`,
             subtext: "In progress",
             color: "from-blue-500 to-cyan-500",
           },
           {
             icon: CheckCircle,
-            label: "Skills Mastered",
-            value: "0",
-            subtext: "Complete a goal",
+            label: "Completed Roadmaps",
+            value: `${completedRoadmaps.length}`,
+            subtext:
+              completedRoadmaps.length > 0
+                ? "Great progress!"
+                : "Complete a goal",
             color: "from-green-500 to-emerald-500",
           },
           {
@@ -274,35 +296,69 @@ export default function Dashboard() {
                   </Card>
                 )}
               </div>
-              {/* Recent Roadmaps */}
-              {recentRoadmaps.length > 0 ? (
-                <div className="space-y-4 mt-6">
-                  <h4 className="text-md font-semibold">Recent Roadmaps</h4>
-                  {recentRoadmaps.map((rm) => (
-                    <Card key={rm.id} className="p-4 border-border/50">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h5 className="font-medium text-foreground">
-                            {rm.title}
-                          </h5>
-                          <p className="text-sm text-muted-foreground line-clamp-1">
-                            {rm.description}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/dashboard/assessment?topic=${encodeURIComponent(rm.title)}`}
+              {/* Active & Completed Roadmaps */}
+              {roadmaps.length > 0 ? (
+                <div className="space-y-6 mt-6">
+                  {activeRoadmaps.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="text-md font-semibold flex items-center gap-2">
+                        <Target className="w-4 h-4 text-blue-400" />
+                        Active Roadmaps
+                      </h4>
+                      {activeRoadmaps.slice(0, 3).map((rm) => (
+                        <Card key={rm.id} className="p-4 border-border/50">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h5 className="font-medium text-foreground">
+                                {rm.title}
+                              </h5>
+                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                {rm.description}
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="ml-4 flex-shrink-0"
+                              onClick={() => openStageDialog(rm)}
+                            >
+                              Test Skill
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+
+                  {completedRoadmaps.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="text-md font-semibold flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400" />
+                        Completed Roadmaps
+                      </h4>
+                      {completedRoadmaps.slice(0, 3).map((rm) => (
+                        <Card
+                          key={rm.id}
+                          className="p-4 border-green-500/20 bg-green-500/5"
                         >
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="ml-4 flex-shrink-0"
-                          >
-                            Test Skill
-                          </Button>
-                        </Link>
-                      </div>
-                    </Card>
-                  ))}
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h5 className="font-medium text-foreground">
+                                {rm.title}
+                              </h5>
+                              <p className="text-sm text-muted-foreground line-clamp-1">
+                                {rm.description}
+                              </p>
+                            </div>
+                            <span className="ml-4 flex-shrink-0 text-xs px-2 py-1 rounded-full font-medium bg-green-500/10 text-green-400 flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Completed
+                            </span>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -409,6 +465,14 @@ export default function Dashboard() {
           </div>
         </Card>
       </motion.div>
+
+      {/* Learning Stage Selection Dialog (Test Skill) */}
+      <StageSelectDialog
+        open={stageDialogOpen}
+        onOpenChange={setStageDialogOpen}
+        skillName={selectedRoadmap?.title}
+        onSelect={handleStageSelect}
+      />
     </div>
   );
 }

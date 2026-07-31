@@ -11,9 +11,11 @@ class Question(BaseModel):
 class Quiz(BaseModel):
     topic: str
     questions: List[Question]
+    difficulty: Optional[str] = None
 
 class AssessmentCreate(BaseModel):
     topic: str
+    stage: Optional[str] = "just_started"
 
 class Answer(BaseModel):
     question_id: int
@@ -23,6 +25,8 @@ class AssessmentSubmit(BaseModel):
     topic: str
     score: int
     total_questions: int
+    stage: Optional[str] = None
+    roadmap_id: Optional[int] = None
 
 class AssessmentResponse(BaseModel):
     id: int
@@ -32,6 +36,7 @@ class AssessmentResponse(BaseModel):
     recommendations: Optional[str] = None
     created_at: datetime
     user_id: int
+    roadmap_completed: bool = False
 
     class Config:
         from_attributes = True

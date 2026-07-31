@@ -4,6 +4,7 @@ import json
 
 from app.database.database import get_db
 from app.models.assessment import Assessment
+from app.models.roadmap import Roadmap
 from app.models.user import User
 from app.schemas.assessment import (
     AssessmentCreate,
@@ -16,15 +17,25 @@ from app.services.grok_service import generate_quiz, generate_recommendations
 
 router = APIRouter(prefix="/assessment", tags=["Assessment"])
 
+# Maps the user's learning stage to a quiz difficulty level
+STAGE_DIFFICULTY = {
+    "just_started": "easy",
+    "mediocre": "medium",
+    "almost_complete": "hard",
+    "completed": "expert",
+}
+
 @router.post("/generate", response_model=Quiz)
 def create_assessment_quiz(
     request: AssessmentCreate,
     current_user: User = Depends(get_current_user)
 ):
     try:
-        quiz_json_str = generate_quiz(request.topic)
+        difficulty = STAGE_DIFFICULTY.get(request.stage or "just_started", "easy")
+        quiz_json_str = generate_quiz(request.topic, difficulty)
         # Parse the JSON string from LLM
         quiz_data = json.loads(quiz_json_str)
+        quiz_data["difficulty"] = difficulty
         return Quiz(**quiz_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate quiz: {str(e)}")
@@ -49,10 +60,31 @@ def submit_assessment(
     )
 
     db.add(new_assessment)
+
+    # If the user said they Completed Learning and scored 90% or above,
+    # automatically mark the linked roadmap as Completed.
+    roadmap_completed = False
+    if (
+        request.stage == "completed"
+        and request.roadmap_id is not None
+        and request.total_questions > 0
+        and (request.score / request.total_questions) >= 0.9
+    ):
+        db_roadmap = db.query(Roadmap).filter(
+            Roadmap.id == request.roadmap_id,
+            Roadmap.user_id == current_user.id
+        ).first()
+
+        if db_roadmap and db_roadmap.status != "Completed":
+            db_roadmap.status = "Completed"
+            roadmap_completed = True
+
     db.commit()
     db.refresh(new_assessment)
 
-    return new_assessment
+    response = AssessmentResponse.model_validate(new_assessment)
+    response.roadmap_completed = roadmap_completed
+    return response
 
 @router.get("/history", response_model=list[AssessmentResponse])
 def get_assessment_history(

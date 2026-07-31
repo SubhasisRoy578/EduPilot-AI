@@ -22,10 +22,16 @@ import {
   Code,
   Zap,
   BookOpen,
+  CheckCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  StageSelectDialog,
+  type LearningStage,
+} from "@/components/stage-select-dialog";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -44,6 +50,28 @@ export default function Roadmap() {
   });
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+  const [stageDialogOpen, setStageDialogOpen] = useState(false);
+  const [selectedRoadmap, setSelectedRoadmap] = useState<any>(null);
+
+  const activeRoadmaps = roadmaps.filter((rm) => rm.status !== "Completed");
+  const completedRoadmaps = roadmaps.filter(
+    (rm) => rm.status === "Completed",
+  );
+
+  const openStageDialog = (rm: any) => {
+    setSelectedRoadmap(rm);
+    setStageDialogOpen(true);
+  };
+
+  const handleStageSelect = (stage: LearningStage) => {
+    if (!selectedRoadmap) return;
+    setStageDialogOpen(false);
+    router.push(
+      `/dashboard/assessment?topic=${encodeURIComponent(selectedRoadmap.title)}&stage=${stage}&roadmap_id=${selectedRoadmap.id}`,
+    );
+  };
 
   useEffect(() => {
     fetchRoadmaps();
@@ -240,18 +268,19 @@ export default function Roadmap() {
           </Card>
         </motion.div>
       )}
-      {/* My Roadmaps */}
-      {roadmaps.length > 0 && (
+      {/* Active Roadmaps */}
+      {activeRoadmaps.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            My Roadmaps
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <MapPin className="w-5 h-5 text-blue-400" />
+            Active Roadmaps
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {roadmaps.map((roadmap, i) => {
+            {activeRoadmaps.map((roadmap, i) => {
               const Icon = BookOpen;
               return (
                 <motion.div
@@ -276,17 +305,61 @@ export default function Roadmap() {
                       <span className="text-xs text-muted-foreground">
                         {roadmap.status || "Active"}
                       </span>
-                      <Link
-                        href={`/dashboard/assessment?topic=${encodeURIComponent(roadmap.title)}`}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400"
+                        onClick={() => openStageDialog(roadmap)}
                       >
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400"
-                        >
-                          Test Skill
-                        </Button>
-                      </Link>
+                        Test Skill
+                      </Button>
+                    </div>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Completed Roadmaps */}
+      {completedRoadmaps.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-400" />
+            Completed Roadmaps
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {completedRoadmaps.map((roadmap, i) => {
+              const Icon = BookOpen;
+              return (
+                <motion.div
+                  key={roadmap.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
+                >
+                  <Card className="group bg-card hover:bg-card/80 border-green-500/20 hover:border-green-500/40 p-6 transition-all flex flex-col h-full">
+                    <div
+                      className={`w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mb-4 opacity-20 group-hover:opacity-30 transition-opacity`}
+                    >
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-green-400 transition">
+                      {roadmap.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4 flex-grow line-clamp-3">
+                      {roadmap.description}
+                    </p>
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/20">
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-500/10 text-green-400 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Completed
+                      </span>
                     </div>
                   </Card>
                 </motion.div>
@@ -361,6 +434,14 @@ export default function Roadmap() {
           })}
         </div>
       </motion.div>
+
+      {/* Learning Stage Selection Dialog (Test Skill) */}
+      <StageSelectDialog
+        open={stageDialogOpen}
+        onOpenChange={setStageDialogOpen}
+        skillName={selectedRoadmap?.title}
+        onSelect={handleStageSelect}
+      />
     </div>
   );
 }

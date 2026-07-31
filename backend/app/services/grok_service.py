@@ -30,10 +30,34 @@ def generate_roadmap(goal: str):
     return response.choices[0].message.content
 
 
-def generate_quiz(topic: str) -> str:
+DIFFICULTY_GUIDANCE = {
+    "easy": (
+        "EASY difficulty: beginner-friendly questions covering basic "
+        "definitions, terminology, and fundamental concepts."
+    ),
+    "medium": (
+        "MEDIUM difficulty: intermediate questions covering practical usage, "
+        "common patterns, and applied understanding of the topic."
+    ),
+    "hard": (
+        "HARD difficulty: advanced questions covering edge cases, best "
+        "practices, debugging scenarios, and deeper conceptual understanding."
+    ),
+    "expert": (
+        "EXPERT difficulty: mastery-level questions covering advanced "
+        "internals, tricky edge cases, performance considerations, and "
+        "nuanced real-world scenarios. These should challenge someone who "
+        "has completed learning the topic."
+    ),
+}
+
+
+def generate_quiz(topic: str, difficulty: str = "easy") -> str:
+    guidance = DIFFICULTY_GUIDANCE.get(difficulty, DIFFICULTY_GUIDANCE["easy"])
     prompt = f"""
     You are an expert education mentor.
     Create a 5-question multiple choice quiz on the topic: {topic}.
+    The quiz difficulty MUST match this level: {guidance}
     Return ONLY a JSON object representing the quiz with the following structure:
     {{
         "topic": "{topic}",

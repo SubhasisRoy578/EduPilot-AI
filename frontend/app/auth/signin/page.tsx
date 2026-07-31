@@ -40,10 +40,17 @@ export default function SignIn() {
     alert("Login Successful!");
 
     router.push("/dashboard");
-   } catch (error) {
-    alert("Invalid email or password");
-    console.error(error);
+   } catch (error: any) {
+  console.error(error);
+
+  if (error.response) {
+    console.log("Status:", error.response.status);
+    console.log("Data:", error.response.data);
+    alert(JSON.stringify(error.response.data));
+  } else {
+    alert(error.message);
   }
+}
 };
   return (
     <motion.div

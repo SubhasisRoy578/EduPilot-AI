@@ -24,6 +24,11 @@ import {
 } from "lucide-react";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import {
+  StageSelectDialog,
+  LEARNING_STAGES,
+  type LearningStage,
+} from "@/components/stage-select-dialog";
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -61,16 +66,56 @@ function AssessmentContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [customTopic, setCustomTopic] = useState("");
 
+  // Learning stage selection (Test Skill flow)
+  const [stageDialogOpen, setStageDialogOpen] = useState(false);
+  const [pendingSkill, setPendingSkill] = useState("");
+  const [selectedStage, setSelectedStage] = useState<LearningStage | null>(
+    null,
+  );
+  const [roadmapId, setRoadmapId] = useState<number | null>(null);
+
   useEffect(() => {
-    const topic = searchParams.get('topic');
-    if (topic && quizStatus === 'idle') {
-      startAssessment(topic);
+    const topic = searchParams.get("topic");
+    const stage = searchParams.get("stage");
+    const roadmapIdParam = searchParams.get("roadmap_id");
+
+    if (topic && quizStatus === "idle" && !quizData && !isLoading) {
+      const parsedRoadmapId = roadmapIdParam
+        ? parseInt(roadmapIdParam, 10)
+        : null;
+      setRoadmapId(Number.isNaN(parsedRoadmapId as number) ? null : parsedRoadmapId);
+
+      const validStage = LEARNING_STAGES.find((s) => s.value === stage);
+      if (validStage) {
+        // Stage already chosen (e.g. via Test Skill dialog on another page)
+        startAssessment(topic, validStage.value);
+      } else {
+        // Ask the user for their learning stage first
+        setPendingSkill(topic);
+        setStageDialogOpen(true);
+      }
     }
   }, [searchParams]);
 
-  const startAssessment = async (skill: string) => {
-    setSelectedSkill(skill);
+  // Called after the user picks a skill: ask for their learning stage
+  const requestStage = (skill: string) => {
     setShowDialog(false);
+    setPendingSkill(skill);
+    setStageDialogOpen(true);
+  };
+
+  const handleStageSelect = (stage: LearningStage) => {
+    setStageDialogOpen(false);
+    if (pendingSkill) {
+      startAssessment(pendingSkill, stage);
+    }
+  };
+
+  const startAssessment = async (skill: string, stage: LearningStage) => {
+    setSelectedSkill(skill);
+    setSelectedStage(stage);
+    setShowDialog(false);
+    setStageDialogOpen(false);
     setIsLoading(true);
     try {
       const response = await fetch(
@@ -81,7 +126,7 @@ function AssessmentContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
           },
-          body: JSON.stringify({ topic: skill }),
+          body: JSON.stringify({ topic: skill, stage: stage }),
         },
       );
       if (!response.ok) throw new Error("Failed to generate assessment");
@@ -125,6 +170,8 @@ function AssessmentContent() {
           topic: quizData.topic,
           score,
           total_questions: quizData.questions.length,
+          stage: selectedStage,
+          roadmap_id: roadmapId,
         }),
       });
       if (!response.ok) throw new Error("Failed to submit assessment");
@@ -179,7 +226,7 @@ function AssessmentContent() {
                     key={skill}
                     variant="outline"
                     className="w-full justify-start border-border/50 h-auto py-3 hover:bg-blue-500/10"
-                    onClick={() => startAssessment(skill)}
+                    onClick={() => requestStage(skill)}
                     disabled={isLoading}
                   >
                     {skill}
@@ -195,7 +242,7 @@ function AssessmentContent() {
                   <Button
                     onClick={() => {
                       if (customTopic.trim()) {
-                        startAssessment(customTopic.trim());
+                        requestStage(customTopic.trim());
                       }
                     }}
                     disabled={!customTopic.trim() || isLoading}
@@ -234,8 +281,22 @@ function AssessmentContent() {
                   Question {currentQuestionIndex + 1} of{" "}
                   {quizData.questions.length}
                 </span>
-                <span className="text-sm font-medium text-blue-400">
+                <span className="text-sm font-medium text-blue-400 flex items-center gap-2">
                   {selectedSkill}
+                  {selectedStage && (
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        LEARNING_STAGES.find(
+                          (s) => s.value === selectedStage,
+                        )?.badgeClass || "bg-blue-500/10 text-blue-400"
+                      }`}
+                    >
+                      {
+                        LEARNING_STAGES.find((s) => s.value === selectedStage)
+                          ?.difficulty
+                      }
+                    </span>
+                  )}
                 </span>
               </div>
               <Progress
