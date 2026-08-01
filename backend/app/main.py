@@ -19,7 +19,10 @@ from app.routes.assessment import router as assessment_router
 from app.routes.analytics import router as analytics_router
 from app.services.grok_service import generate_roadmap, generate_study_guide
 from pydantic import BaseModel
+from app.core.config import settings
+from app.database.migrations import run_startup_migrations
 
+run_startup_migrations(settings.DATABASE_URL)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(

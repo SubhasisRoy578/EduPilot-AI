@@ -105,44 +105,67 @@ function AssessmentContent() {
   };
 
   const handleStageSelect = (stage: LearningStage) => {
-    setStageDialogOpen(false);
-    if (pendingSkill) {
-      startAssessment(pendingSkill, stage);
-    }
-  };
+  console.log("handleStageSelect called");
+  console.log("Stage:", stage);
+  console.log("Pending Skill:", pendingSkill);
+
+
+  setStageDialogOpen(false);
+
+  if (pendingSkill) {
+    startAssessment(pendingSkill, stage);
+  } else {
+    alert("pendingSkill is empty");
+  }
+};
 
   const startAssessment = async (skill: string, stage: LearningStage) => {
-    setSelectedSkill(skill);
-    setSelectedStage(stage);
-    setShowDialog(false);
-    setStageDialogOpen(false);
-    setIsLoading(true);
-    try {
-      const response = await fetch(
-        "http://localhost:8000/assessment/generate",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-          body: JSON.stringify({ topic: skill, stage: stage }),
-        },
-      );
-      if (!response.ok) throw new Error("Failed to generate assessment");
-      const data = await response.json();
-      setQuizData(data);
-      setQuizStatus("taking");
-      setCurrentQuestionIndex(0);
-      setAnswers({});
-    } catch (error) {
-      console.error(error);
-      // Fallback or show error
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  console.log("startAssessment called");
+  console.log("Skill:", skill);
+  console.log("Stage:", stage);
 
+  setSelectedSkill(skill);
+  setSelectedStage(stage);
+  setShowDialog(false);
+  setStageDialogOpen(false);
+  setIsLoading(true);
+
+  try {
+    const response = await fetch(
+      "http://localhost:8000/assessment/generate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        body: JSON.stringify({
+          topic: skill,
+          stage: stage,
+        }),
+      }
+    );
+
+    console.log("Status:", response.status);
+
+    if (!response.ok) {
+      throw new Error("Failed to generate assessment");
+    }
+
+    const data = await response.json();
+
+    console.log("Assessment Response:", data);
+
+    setQuizData(data);
+    setQuizStatus("taking");
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+  } catch (error) {
+    console.error("Assessment Error:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
   const handleOptionSelect = (questionId: number, option: string) => {
     setAnswers({ ...answers, [questionId]: option });
   };
@@ -584,6 +607,12 @@ function AssessmentContent() {
           </Card>
         </motion.div>
       )}
+      <StageSelectDialog
+        open={stageDialogOpen}
+        onOpenChange={setStageDialogOpen}
+        onSelect={handleStageSelect}
+      />
     </div>
   );
 }
+

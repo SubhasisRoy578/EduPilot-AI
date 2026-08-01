@@ -59,6 +59,13 @@ export default function Roadmap() {
   const completedRoadmaps = roadmaps.filter(
     (rm) => rm.status === "Completed",
   );
+  const learnedToday = (roadmap: any) => {
+  if (!roadmap.last_learned_date) return false;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  return roadmap.last_learned_date === today;
+  };
 
   const openStageDialog = (rm: any) => {
     setSelectedRoadmap(rm);

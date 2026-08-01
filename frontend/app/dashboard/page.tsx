@@ -65,6 +65,19 @@ export default function Dashboard() {
   const completedRoadmaps = roadmaps.filter(
     (rm) => rm.status === "Completed",
   );
+  const learnedToday = (rm: any) => {
+  console.log("Roadmap:", rm);
+
+  if (!rm.last_learned_date) return false;
+
+  const today = new Date().toISOString().split("T")[0];
+
+  console.log("Backend:", rm.last_learned_date);
+  console.log("Frontend:", today);
+  console.log("Match:", rm.last_learned_date === today);
+
+  return rm.last_learned_date === today;
+  };                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 
   const openStageDialog = (rm: any) => {
     setSelectedRoadmap(rm);
@@ -115,7 +128,8 @@ export default function Dashboard() {
       const response = await axios.get("http://127.0.0.1:8000/analytics/summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setHoursLearned(response.data.stats.total_learning_hours.replace(" hrs", "").replace(" hr", "").trim());
+      const hrs = response.data.stats.total_learning_hours;
+      setHoursLearned(hrs);
       setWeeklyActivity(response.data.weekly_activity || []);
     } catch (error) {
       console.error("Error fetching analytics:", error);
@@ -134,13 +148,13 @@ export default function Dashboard() {
       await axios.post(`http://127.0.0.1:8000/roadmap/${id}/learn-today`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success("Great job! Learning logged for today.");
-      fetchUser();
-      fetchAnalytics();
-      fetchRoadmaps();
+      toast.success("Thank you for learning today! Come again tomorrow.");
+      await fetchUser();
+      await fetchAnalytics();
+      await fetchRoadmaps();
     } catch (error: any) {
       if (error.response?.status === 400) {
-        toast.error("You already claimed today's lesson for this roadmap.");
+        toast.info("Thank you! You have already completed today's lesson. Come again tomorrow.");
       } else {
         toast.error("Failed to log learning. Please try again.");
       }
@@ -253,7 +267,7 @@ export default function Dashboard() {
           {
             icon: BookOpen,
             label: "Hours Learned",
-            value: "0",
+            value: hoursLearned,
             subtext: "Keep learning",
             color: "from-purple-500 to-pink-500",
           },
@@ -351,14 +365,28 @@ export default function Dashboard() {
                       <div className="flex flex-col gap-2">
                         <h5 className="font-medium text-foreground">{rm.title}</h5>
                         <p className="text-sm text-muted-foreground">Today's suggested lesson: Keep progressing on your roadmap.</p>
-                        <div className="flex gap-2 mt-2">
-                          <Button size="sm" className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30" onClick={() => handleLearnToday(rm.id)}>
-                            Learnt Today's Lesson
+                       <div className="flex gap-2 mt-2">
+                         <Button
+                           size="sm"
+                           disabled={learnedToday(rm)}
+                           className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 disabled:opacity-60"
+                           onClick={() => handleLearnToday(rm.id)}
+                          >
+                            {learnedToday(rm)
+                             ? "Done for Today ✓"
+                             : "Learnt Today's Lesson"}
+                         </Button>
+
+                        {!learnedToday(rm) && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleNotYet(rm.id)}
+                          >
+                           Not Yet (Learn Now)
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => handleNotYet(rm.id)}>
-                            Not Yet (Learn Now)
-                          </Button>
-                        </div>
+                          )}
+                      </div>
                       </div>
                     </Card>
                   ))}
@@ -374,7 +402,7 @@ export default function Dashboard() {
                         <Target className="w-4 h-4 text-blue-400" />
                         Active Roadmaps
                       </h4>
-                      {activeRoadmaps.slice(0, 3).map((rm) => (
+                      {activeRoadmaps.map((rm) => (
                         <Card key={rm.id} className="p-4 border-border/50">
                           <div className="flex justify-between items-center">
                             <div>
@@ -430,7 +458,7 @@ export default function Dashboard() {
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         Completed Roadmaps
                       </h4>
-                      {completedRoadmaps.slice(0, 3).map((rm) => (
+                      {completedRoadmaps.map((rm) => (
                         <Card
                           key={rm.id}
                           className="p-4 border-green-500/20 bg-green-500/5"

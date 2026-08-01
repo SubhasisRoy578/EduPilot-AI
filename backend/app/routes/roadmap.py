@@ -122,6 +122,14 @@ def learn_today(
         raise HTTPException(status_code=400, detail="Already claimed today's lesson for this roadmap")
 
     roadmap.last_learned_date = today
+    # Update roadmap progress
+    if roadmap.completed_weeks < roadmap.total_weeks:
+       roadmap.completed_weeks += 1
+
+    roadmap.completed_milestones = roadmap.completed_weeks
+
+    if roadmap.completed_weeks >= roadmap.total_weeks:
+        roadmap.status = "Completed"
 
     # Update activity
     activity = db.query(UserActivity).filter(
@@ -146,7 +154,13 @@ def learn_today(
         elif current_user.last_login is None or current_user.last_login < today - timedelta(days=1):
             current_user.streak = 1
         current_user.last_login = today
-
+    db.add(roadmap)
     db.commit()
+    db.refresh(roadmap)
 
-    return {"message": "Lesson claimed successfully"}
+    return {
+    "message": "Lesson claimed successfully",
+    "completed_weeks": roadmap.completed_weeks,
+    "completed_milestones": roadmap.completed_milestones,
+    "hours_added": hours
+    }

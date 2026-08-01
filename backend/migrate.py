@@ -1,7 +1,11 @@
 import sqlite3
 
+from app.database.migrations import migrate_completed_milestones
+
+DB_PATH = "edupilot.db"
+
 def run_migration():
-    conn = sqlite3.connect('test.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     try:
@@ -26,6 +30,10 @@ def run_migration():
 
     conn.commit()
     conn.close()
+
+    # Repair completed_milestones column type and normalize existing values.
+    migrate_completed_milestones(DB_PATH)
+
     print("Migration completed successfully.")
 
 if __name__ == "__main__":

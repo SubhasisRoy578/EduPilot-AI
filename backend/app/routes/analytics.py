@@ -96,7 +96,7 @@ def get_analytics_summary(
     weekly_activity = []
     for i in range(7):
         d = seven_days_ago + timedelta(days=i)
-        day_str = d.strftime("%b %-d") if "%-d" in d.strftime("%b %-d") else d.strftime("%b %d").replace(" 0", " ")
+        day_str = f"{d.strftime('%b')} {d.day}"
         hours = activity_dict.get(d, 0)
         weekly_activity.append({
             "day": day_str,

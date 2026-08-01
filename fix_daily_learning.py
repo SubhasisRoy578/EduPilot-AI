@@ -56,8 +56,15 @@ daily_section = """
                         <h5 className="font-medium text-foreground">{rm.title}</h5>
                         <p className="text-sm text-muted-foreground">Today's suggested lesson: Keep progressing on your roadmap.</p>
                         <div className="flex gap-2 mt-2">
-                          <Button size="sm" className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30" onClick={() => handleLearnToday(rm.id)}>
-                            Learnt Today's Lesson
+                          <Button
+                           size="sm"
+                           disabled={learnedToday(rm)}
+                           className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 disabled:opacity-60"
+                           onClick={() => handleLearnToday(rm.id)}
+                           >
+                            {learnedToday(rm)
+                             ? "Done for Today ✓"
+                             : "Learnt Today's Lesson"}
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => handleNotYet(rm.id)}>
                             Not Yet (Learn Now)
