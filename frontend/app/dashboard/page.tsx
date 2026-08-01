@@ -54,6 +54,8 @@ export default function Dashboard() {
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const [hoursLearned, setHoursLearned] = useState("0");
+  const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
 
   // Stage selection dialog state for "Test Skill"
   const [stageDialogOpen, setStageDialogOpen] = useState(false);
@@ -77,44 +79,77 @@ export default function Dashboard() {
     );
   };
 
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://127.0.0.1:8000/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser({
+        name: `${response.data.first_name} ${response.data.last_name}`,
+        email: response.data.email,
+        role: response.data.role,
+        streak: response.data.streak,
+      });
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  const fetchRoadmaps = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://127.0.0.1:8000/roadmap/my", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const sorted = response.data.sort((a: any, b: any) => b.id - a.id);
+      setRoadmaps(sorted);
+    } catch (error) {
+      console.error("Error fetching roadmaps:", error);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://127.0.0.1:8000/analytics/summary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHoursLearned(response.data.stats.total_learning_hours.replace(" hrs", "").replace(" hr", "").trim());
+      setWeeklyActivity(response.data.weekly_activity || []);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        const response = await axios.get("http://127.0.0.1:8000/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setUser({
-          name: `${response.data.first_name} ${response.data.last_name}`,
-          email: response.data.email,
-          role: response.data.role,
-          streak: response.data.streak,
-        });
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-
     fetchUser();
-
-    const fetchRoadmaps = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://127.0.0.1:8000/roadmap/my", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const sorted = response.data.sort((a: any, b: any) => b.id - a.id);
-        setRoadmaps(sorted);
-      } catch (error) {
-        console.error("Error fetching roadmaps:", error);
-      }
-    };
     fetchRoadmaps();
+    fetchAnalytics();
   }, []);
+
+  const handleLearnToday = async (id: number) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(`http://127.0.0.1:8000/roadmap/${id}/learn-today`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("Great job! Learning logged for today.");
+      fetchUser();
+      fetchAnalytics();
+      fetchRoadmaps();
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        toast.error("You already claimed today's lesson for this roadmap.");
+      } else {
+        toast.error("Failed to log learning. Please try again.");
+      }
+    }
+  };
+
+  const handleNotYet = (id: number) => {
+    router.push(`/dashboard/roadmap/${id}`);
+  };
   const generateRoadmap = async () => {
     try {
       setLoading(true);
