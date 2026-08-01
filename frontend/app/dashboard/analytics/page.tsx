@@ -69,7 +69,7 @@ export default function Analytics() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const response = await fetch('http://localhost:8000/analytics/summary', {
+        const response = await fetch('https://edupilot-ai-wzlp.onrender.com/analytics/summary', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
           },
