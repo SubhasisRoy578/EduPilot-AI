@@ -26,20 +26,13 @@ def get_analytics_summary(
         Roadmap.status == "Completed"
     ).count()
 
-    # Total learning hours (just mock it or use roadmap expected hours if implemented, let's return 0 for now or calculate from completed roadmaps)
-    # We will return mock data since we don't track time
+    # Total learning hours
     roadmaps = db.query(Roadmap).filter(
     Roadmap.user_id == user_id
     ).all()
 
-    total_learning_hours = 0
-
-    for roadmap in roadmaps:
-      if roadmap.created_at:
-        days = (datetime.utcnow().date() - roadmap.created_at.date()).days
-
-        if days > 0:
-            total_learning_hours += days * roadmap.hours_per_day
+    total_learning_hours_result = db.query(func.sum(UserActivity.hours)).filter(UserActivity.user_id == user_id).scalar()
+    total_learning_hours = total_learning_hours_result if total_learning_hours_result else 0
     # Assessment history over time
     assessments = db.query(Assessment).filter(
         Assessment.user_id == user_id
