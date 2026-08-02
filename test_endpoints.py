@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 
 def run_tests():
-    base_url = "http://127.0.0.1:8000"
+    base_url = "https://edupilot-ai-wzlp.onrender.com"
 
     print("Testing Doubt Solver...")
     resp = requests.post(f"{base_url}/doubt-solver", json={"question": "What is Python?"})

@@ -67,7 +67,7 @@ export default function DashboardLayout({
         return
       }
       try {
-        const response = await axios.get('http://127.0.0.1:8000/me', {
+        const response = await axios.get('https://edupilot-ai-wzlp.onrender.com/me', {
           headers: {
             Authorization: `Bearer ${token}`
           }

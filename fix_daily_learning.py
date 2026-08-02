@@ -13,7 +13,7 @@ if "const handleLearnToday" not in content:
     inject_func = """  const handleLearnToday = async (roadmapId: number) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://127.0.0.1:8000/roadmap/${roadmapId}/learn-today`, {
+      const res = await fetch(`https://edupilot-ai-wzlp.onrender.com/roadmap/${roadmapId}/learn-today`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
