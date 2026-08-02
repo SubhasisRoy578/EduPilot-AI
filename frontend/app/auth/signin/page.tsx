@@ -38,8 +38,9 @@ export default function SignIn() {
     localStorage.setItem("token", response.data.access_token);
 
     alert("Login Successful!");
+    
+    window.location.href = "/dashboard";
 
-    router.push("/dashboard");
    } catch (error: any) {
   console.log("========== LOGIN ERROR ==========");
   console.log("Full Error:", error);
