@@ -95,7 +95,7 @@ export default function Dashboard() {
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/me", {
+      const response = await axios.get("https://edupilot-ai-wzlp.onrender.com/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser({
@@ -112,7 +112,7 @@ export default function Dashboard() {
   const fetchRoadmaps = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/roadmap/my", {
+      const response = await axios.get("https://edupilot-ai-wzlp.onrender.com/roadmap/my", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const sorted = response.data.sort((a: any, b: any) => b.id - a.id);
@@ -125,7 +125,7 @@ export default function Dashboard() {
   const fetchAnalytics = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://127.0.0.1:8000/analytics/summary", {
+      const response = await axios.get("https://edupilot-ai-wzlp.onrender.com/analytics/summary", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const hrs = response.data.stats.total_learning_hours;
@@ -145,7 +145,7 @@ export default function Dashboard() {
   const handleLearnToday = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(`http://127.0.0.1:8000/roadmap/${id}/learn-today`, {}, {
+      const response = await axios.post(`https://edupilot-ai-wzlp.onrender.com/roadmap/${id}/learn`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success("Thank you for learning today! Come again tomorrow.");
@@ -168,7 +168,7 @@ export default function Dashboard() {
     try {
       setLoading(true);
 
-      const response = await axios.post("http://127.0.0.1:8000/grok/test", {
+      const response = await axios.post("https://edupilot-ai-wzlp.onrender.com/grok/test", {
         goal: goal,
       });
 
@@ -178,7 +178,7 @@ export default function Dashboard() {
       const token = localStorage.getItem("token");
       const title = goal.split(" ").slice(0, 5).join(" ") + "..."; // Create a simple title
       const createResponse = await axios.post(
-        "http://127.0.0.1:8000/roadmap/create",
+        "https://edupilot-ai-wzlp.onrender.com/roadmap/create",
         {
           title: title,
           description: goal,
