@@ -41,17 +41,26 @@ export default function SignIn() {
 
     router.push("/dashboard");
    } catch (error: any) {
-  console.error(error);
+  console.log("========== LOGIN ERROR ==========");
+  console.log("Full Error:", error);
+  console.log("Message:", error.message);
+  console.log("Code:", error.code);
+  console.log("Config:", error.config);
 
   if (error.response) {
     console.log("Status:", error.response.status);
-    console.log("Data:", error.response.data);
+    console.log("Response:", error.response.data);
     alert(JSON.stringify(error.response.data));
+  } else if (error.request) {
+    console.log("Request:", error.request);
+    alert("Network Error: Request was sent but no response was received.");
   } else {
+    console.log("Unexpected Error:", error);
     alert(error.message);
   }
-}
-};
+
+  console.log("=================================");
+}};
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
