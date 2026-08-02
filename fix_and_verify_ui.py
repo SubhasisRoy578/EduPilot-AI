@@ -8,7 +8,7 @@ async def verify():
         page = await context.new_page()
 
         # Navigate to login
-        await page.goto('http://localhost:3000/auth/signin')
+        await page.goto('https://edupilot-ai-wzlp.onrender.com/auth/signin')
         await page.fill('input[type="email"]', 'test@test.com')
         await page.fill('input[type="password"]', 'test')
         await page.click('button[type="submit"]')
@@ -17,7 +17,7 @@ async def verify():
         await page.wait_for_timeout(5000)
 
         if 'dashboard' not in page.url:
-            await page.goto('http://localhost:3000/dashboard')
+            await page.goto('https://edupilot-ai-wzlp.onrender.com/dashboard')
             await page.wait_for_timeout(3000)
 
         await page.screenshot(path='dashboard_verified_final.png', full_page=True)
